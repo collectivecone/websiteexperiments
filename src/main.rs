@@ -5,23 +5,11 @@ use std::{
     collections::HashMap,
 };
 
-#[derive(Debug, PartialEq, Eq)]
-pub enum HttpTypes {
-   Post,
-   Get
-}
-#[derive(Debug)]
-pub struct RequestType {
-   http_type: HttpTypes,
-   request: String,
-}
 
-#[derive(Debug)]
-pub struct Request {
-    request: RequestType,
-    body: String,
-    headers: HashMap<String,String>,
-}
+mod utils;
+mod experiments;
+
+use utils::http::{Request,RequestType,HttpTypes};
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
@@ -47,9 +35,10 @@ fn websocket_handling(stream: TcpStream, request: Request ) {
 fn website_handling(stream: TcpStream, request: Request) {
     println!("{:?}",request);
 
-    let link = request.request.request;
+    let link = request.request.request.clone();
 
     if link == "/" {
+        crate::experiments::base::http_request(stream,request);
    //   crate::experiments::base::http_request();
     }
 }
