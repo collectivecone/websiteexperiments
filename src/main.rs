@@ -50,7 +50,7 @@ fn website_handling(stream: TcpStream, request: Request) {
     let link = request.request.request;
 
     if link == "/" {
-      crate::experiments::base::http_request();
+   //   crate::experiments::base::http_request();
     }
 }
 
