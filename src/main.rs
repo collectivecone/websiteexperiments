@@ -39,7 +39,6 @@ fn website_handling(stream: TcpStream, request: Request) {
 
     if link == "/" {
         crate::experiments::base::http_request(stream,request);
-   //   crate::experiments::base::http_request();
     }
 }
 

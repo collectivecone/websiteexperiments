@@ -1,12 +1,13 @@
 use std::{
-    fs,
-    net::{TcpListener,TcpStream},
-    io::Write,
+    fs, io::Write, net::{TcpListener,TcpStream}, sync::Mutex
 };
-use crate::utils::http::{HttpTypes,Request,RequestType};
+use crate::utils::http::{HttpTypes,Request};
+use crate::utils::websocket::{User,add_new_user};
+
+
+static USERS: Mutex<Vec<User>> = Mutex::new(Vec::new());
 
 pub fn http_request(mut stream: TcpStream, request: Request) {
-
     match request.request.http_type {
         HttpTypes::Get => {
             let status_line = "HTTP/1.1 200 OK";
@@ -21,8 +22,9 @@ pub fn http_request(mut stream: TcpStream, request: Request) {
     }
 }
 
-pub fn websocket_request() {
-
+pub fn websocket_request(mut stream: TcpStream, request: Request) {
+    let guard: std::sync::MutexGuard<'_, Vec<User>> = USERS.lock().unwrap();
+    add_new_user(stream, request.headers, guard);
 
 
 }
