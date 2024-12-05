@@ -1,6 +1,4 @@
 use std::{
-    fs,
-    io::{prelude::*, BufReader},
     net::{TcpListener, TcpStream},
     collections::HashMap,
 };
@@ -12,20 +10,28 @@ mod experiments;
 use utils::http::{Request,RequestType,HttpTypes};
 
 fn main() {
-    let listener = TcpListener::bind("127.0.0.1:7879").unwrap();
 
-    for stream in listener.incoming() { 
-        let mut stream = stream.unwrap();
-        println!("new");
-        if let Some(request) = get_body_and_headers(&mut stream) {
-            if request.headers.get("Upgrade").unwrap_or(&String::new()) == "websocket" {
-                println!("?");
-                websocket_handling(stream,request);
-            } else {
-                website_handling(stream,request);
-            }
-        };
-    }
+   http_responder();
+}
+
+fn experiment_initializer() {
+
+   experiments::base::main();
+}
+
+
+fn http_responder() {
+   let listener = TcpListener::bind("127.0.0.1:7879").unwrap();
+   for stream in listener.incoming() { 
+       let mut stream = stream.unwrap();
+       if let Some(request) = get_body_and_headers(&mut stream) {
+           if request.headers.get("Upgrade").unwrap_or(&String::new()) == "websocket" {
+               websocket_handling(stream,request);
+           } else {
+               website_handling(stream,request);
+           }
+       };
+   }
 }
 
 
