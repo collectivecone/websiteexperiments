@@ -1,1 +1,29 @@
-pizzagang I guess, idk, you think I know html?
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  </head>
+  <body> 
+    <button id ="testbutton">"click me to push websocket output"</button>
+    <script> 
+        window.onload = (event) => {
+          connect_to_websockets()
+
+         };
+
+        function connect_to_websockets() {
+          
+          console.log("yea");
+          console.log(window.location.href);
+          const socket = new WebSocket(window.location.href);
+
+          socket.addEventListener("open", (event) => {
+            socket.send("Hello Server!");
+          });
+          
+          socket.addEventListener("message", (event) => {
+            console.log("Message from server ", event.data);
+          });
+        }
+    </script>
+  </body>
+</html>

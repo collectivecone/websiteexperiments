@@ -4,8 +4,11 @@ use std::{
 use crate::utils::http::{HttpTypes,Request};
 use crate::utils::websocket::{User,add_new_user};
 
-
 static USERS: Mutex<Vec<User>> = Mutex::new(Vec::new());
+
+pub fn main() {
+    
+}
 
 pub fn http_request(mut stream: TcpStream, request: Request) {
     match request.request.http_type {
@@ -23,8 +26,7 @@ pub fn http_request(mut stream: TcpStream, request: Request) {
 }
 
 pub fn websocket_request(mut stream: TcpStream, request: Request) {
-    let guard: std::sync::MutexGuard<'_, Vec<User>> = USERS.lock().unwrap();
+    println!("yes");
+    let mut guard: std::sync::MutexGuard<'_, Vec<User>> = USERS.lock().unwrap();
     add_new_user(stream, request.headers, guard);
-
-
 }

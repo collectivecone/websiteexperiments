@@ -12,12 +12,14 @@ mod experiments;
 use utils::http::{Request,RequestType,HttpTypes};
 
 fn main() {
-    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+    let listener = TcpListener::bind("127.0.0.1:7879").unwrap();
 
     for stream in listener.incoming() { 
         let mut stream = stream.unwrap();
+        println!("new");
         if let Some(request) = get_body_and_headers(&mut stream) {
             if request.headers.get("Upgrade").unwrap_or(&String::new()) == "websocket" {
+                println!("?");
                 websocket_handling(stream,request);
             } else {
                 website_handling(stream,request);
@@ -29,6 +31,13 @@ fn main() {
 
 
 fn websocket_handling(stream: TcpStream, request: Request ) {
+   println!("{:?}",request);
+
+    let link = request.request.request.clone();
+
+    if link == "/" {
+        crate::experiments::base::websocket_request(stream,request);
+    }
 }
 
 

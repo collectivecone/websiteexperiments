@@ -2,15 +2,14 @@ use std::{
     sync::MutexGuard,
     net::TcpStream,
     collections::HashMap,
+    ops::DerefMut
 };
-use tungstenite::{WebSocket,accept_with_config};
+use tungstenite::{WebSocket,accept_with_config,protocol::WebSocketConfig};
 
 
-pub struct User{
+pub struct User {
     websocket: WebSocket<TcpStream>,
     true_ip: String,
-    pub commands: Vec<String>,
-    pub mouse_position: Option<(u16,u16)>
 }
 
 pub const STAND_WEB_CONFIG: WebSocketConfig = WebSocketConfig{
@@ -43,8 +42,8 @@ fn is_multi_connecting(user_vec: &Vec<User>, ip_string: &String) -> bool {
     return false
 }
 
-pub fn add_new_user(stream: TcpStream,headers: HashMap<String,String>, guard: MutexGuard<Vec<User>>)  {
-    let user_vec = guard.deref();
+pub fn add_new_user(stream: TcpStream,headers: HashMap<String,String>,mut guard: MutexGuard<Vec<User>>)  {
+    let user_vec = guard.deref_mut();
 
     if let Some(ip_string) = get_ip(&headers,&stream) {
         if !is_multi_connecting(&user_vec,&ip_string) {
@@ -55,9 +54,7 @@ pub fn add_new_user(stream: TcpStream,headers: HashMap<String,String>, guard: Mu
 
             let user = User{
                 websocket: websocket,
-                commands: Vec::new(),
                 true_ip: ip_string,
-                mouse_position: None,
             };
             guard.push(user);
         }
