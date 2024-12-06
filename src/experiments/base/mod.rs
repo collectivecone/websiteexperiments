@@ -16,8 +16,6 @@ use crate::utils::http::{HttpTypes,Request};
 use crate::utils::websocket::{User,add_new_user,WebsocketData};
 
 static USERS: Mutex<Vec<User>> = Mutex::new(Vec::new());
-static WEBSOCKET_SENDER: Mutex<Option<Sender<String>>> = Mutex::new(None);
-
 
 static WEBSOCKET_SENDER: OnceLock<Sender<WebsocketData>> = OnceLock::new();
 
