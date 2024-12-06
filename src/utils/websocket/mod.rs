@@ -11,11 +11,12 @@ use tungstenite::{
 };
 use fastrand;
 
-
+#[derive(Debug)]
 pub struct WebsocketData {
     pub msg: tungstenite::Message,
     pub user_id: u64,
 }
+#[derive(Debug)]
 pub struct User {
     pub websocket: WebSocket<TcpStream>,
     pub true_ip: String,
@@ -66,9 +67,25 @@ pub fn add_new_user(stream: TcpStream,headers: HashMap<String,String>,mut guard:
             let user = User{
                 websocket: websocket,
                 true_ip: ip_string,
-                id: 23,
+                id: fastrand::u64(..),
             };
             guard.push(user);
         }
     };
 }
+
+pub fn get_user_by_id(users: &mut Vec<User>, id: u64 ) -> Option<&mut User> {
+    for user in users {
+        if user.id == id {
+            return Some(user)
+        };
+    };
+    None
+}
+
+pub fn send_to_all_users(user_vec: &mut Vec<User>, msg: tungstenite::Message) {
+    for user in user_vec.iter_mut() {
+        _ = user.websocket.send(msg.clone());
+    }
+}
+

@@ -35,8 +35,6 @@ fn perm_http_receiver() {
 
 
 fn websocket_handling(stream: TcpStream, request: Request ) {
-   println!("{:?}",request);
-
     let link = request.request.request.clone();
 
     if link == "/" {
@@ -46,7 +44,6 @@ fn websocket_handling(stream: TcpStream, request: Request ) {
 
 
 fn website_handling(stream: TcpStream, request: Request) {
-    println!("{:?}",request);
 
     let link = request.request.request.clone();
 

@@ -3,26 +3,43 @@
   <head>
   </head>
   <body> 
-    <button id ="testbutton">"click me to push websocket output"</button>
+    <label for="Your Message">Name:</label>
+    <input type="text" id="MessageBox" name="Yea" placeholder="message">
+
+    <button id ="SubmitButton" onclick="submit_message">"click me to push websocket output"</button>
+
+    <br>
+    
+    <div id="Messages">
+
+
+    </div>
     <script> 
+
+        let socket;
+
+        document.getElementById("SubmitButton").onclick = () => {
+          text = document.getElementById("MessageBox").value
+          console.log(text);
+          socket.send(text);
+
+        }
+        
+
         window.onload = (event) => {
           connect_to_websockets()
+        };
 
-         };
+        async function connect_to_websockets() {
+          socket = new WebSocket(window.location.href);
+          socket.onmessage = async function(event) {
+            text_area = document.getElementById("Messages")
+            string = event.data;
 
-        function connect_to_websockets() {
-          
-          console.log("yea");
-          console.log(window.location.href);
-          const socket = new WebSocket(window.location.href);
-
-          socket.addEventListener("open", (event) => {
-            socket.send("Hello Server!");
-          });
-          
-          socket.addEventListener("message", (event) => {
-            console.log("Message from server ", event.data);
-          });
+            let div = document.createElement("div");
+            div.textContent = string;
+            text_area.appendChild(div)
+          }
         }
     </script>
   </body>
