@@ -4,13 +4,24 @@ use std::{
     collections::HashMap,
     ops::DerefMut
 };
-use tungstenite::{WebSocket,accept_with_config,protocol::WebSocketConfig};
+use tungstenite::{
+    WebSocket,
+    accept_with_config,
+    protocol::WebSocketConfig
+};
+use fastrand;
 
 
-pub struct User {
-    websocket: WebSocket<TcpStream>,
-    true_ip: String,
+pub struct WebsocketData {
+    pub msg: tungstenite::Message,
+    pub user_id: u64,
 }
+pub struct User {
+    pub websocket: WebSocket<TcpStream>,
+    pub true_ip: String,
+    pub id: u64,
+}
+
 
 pub const STAND_WEB_CONFIG: WebSocketConfig = WebSocketConfig{
     max_send_queue: None,
@@ -48,13 +59,14 @@ pub fn add_new_user(stream: TcpStream,headers: HashMap<String,String>,mut guard:
     if let Some(ip_string) = get_ip(&headers,&stream) {
         if !is_multi_connecting(&user_vec,&ip_string) {
             _ = stream.set_nonblocking(true);
-            let mut websocket = accept_with_config(stream,Some(STAND_WEB_CONFIG)).unwrap();
+            let websocket = accept_with_config(stream,Some(STAND_WEB_CONFIG)).unwrap();
             //initalise_data(&mut websocket);
             //send_inital_monitor_data(&mut websocket);
 
             let user = User{
                 websocket: websocket,
                 true_ip: ip_string,
+                id: 23,
             };
             guard.push(user);
         }
