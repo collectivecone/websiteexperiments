@@ -1,30 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <title> Social Experiment:1</title>
+    <link rel="stylesheet" href="style.css">
+    <style> 
+      body {
+        background: #DDEEFF;
+        margin: 0;
+        padding: 0;
+      }
+      div {
+        font-family: sans-serif;
+      }
+      
+      div.box {
+        border-style: solid;
+        margin-top: 1vh;
+        margin-left: 10vh;
+        margin-right: 10vh;
+        margin-bottom: 10vh;
+        padding: 0px;
+        height: calc(100vh - 75px);
+        top: 25px;
+      }
+      
+      div.top {
+        position: sticky;
+        background: #222222;
+        color: #FFFFFF;
+        font-family: sans-serif;
+        top: 0px;
+        font-size: 25px;
+        padding: 12px;
+      }
+      div.messagebox {
+        Overflow-y:scroll;
+        overflow-x: hidden;
+        height: 95%;
+        display: flex;
+        flex-direction: column-reverse;
+        flex-shrink: 1;
+        align-items: start;
+      }
+      input[type=text] {
+         color: #000000;
+         height: calc(5% - 5px);
+         font-size: 200%;
+         width: calc(100% - 5px);
+         transform: translate(-3px, 0);
+         border: solid;
+         outline: none;
+      }
+      
+      span.message {
+
+        padding-left: 0.4%;
+        padding-top: 0.2%;
+        padding-bottom: 0.2%;
+        padding-right: 0.5%;
+        font-size: 125%;
+        border-style: solid;
+        color: #FFFFFF;
+        background: #999999;
+        font-family: sans-serif;
+        white-space: normal;
+        word-wrap: break-word;
+       }
+    
+    
+    </style>
+
   </head>
   <body> 
-    <label for="Your Message">Name:</label>
-    <input type="text" id="MessageBox" name="Yea" placeholder="message">
-
-    <button id ="SubmitButton" onclick="submit_message">"click me to push websocket output"</button>
-
-    <br>
     
-    <div id="Messages">
-
-
+    <div class="top">
+      <a href=http://www.example.com>Web Experiments</a>: Chatting Restrictions
+    </div>
+    
+    <div class="box">
+    
+       <div id="Messages" class="messagebox"></div>
+       <input type="text" id="MessageInput" class="messageinput" placeholder="enter text here for message">
+      
     </div>
     <script> 
+        let MAX_MESSAGES = 250;
+
+
+    		function add_message(string) {
+         	text_area = document.getElementById("Messages")
+        
+          let span = document.createElement("span");
+          span.className = "message"
+          span.textContent = string;
+          text_area.prepend(span)
+
+          children = text_area.children
+          if (children.length >= MAX_MESSAGES) {
+            children[MAX_MESSAGES - 1].remove()
+
+          }
+        }
+
+        function send_message() {
+            string = document.getElementById('MessageInput').value;
+            add_message(string)
+            socket.send(string)
+        }
 
         let socket;
 
-        document.getElementById("SubmitButton").onclick = () => {
-          text = document.getElementById("MessageBox").value
-          console.log(text);
-          socket.send(text);
-
+        for (let i = 0; i < 122; i++) { 
+          add_message("test message " + i );
         }
-        
+
+        document.getElementById('MessageInput').addEventListener('keydown', function(e){
+            if(e.keyCode === 13) {
+              send_message()
+            };
+        });
 
         window.onload = (event) => {
           connect_to_websockets()
@@ -33,14 +127,11 @@
         async function connect_to_websockets() {
           socket = new WebSocket(window.location.href);
           socket.onmessage = async function(event) {
-            text_area = document.getElementById("Messages")
             string = event.data;
-
-            let div = document.createElement("div");
-            div.textContent = string;
-            text_area.appendChild(div)
+						add_message(string)
           }
         }
     </script>
+    
   </body>
 </html>

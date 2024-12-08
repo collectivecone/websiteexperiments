@@ -1,13 +1,30 @@
 use std::{
     net::{TcpListener, TcpStream},
     collections::HashMap,
+    thread::spawn,
 };
 
 
 mod utils;
 mod experiments;
 
-use utils::http::{Request,RequestType,HttpTypes};
+use utils::http::{
+    Request,
+    RequestType,
+    HttpTypes,
+    reply_to_get,
+};
+
+pub mod settings{
+    use std::sync::RwLock;
+
+    pub static GLOBAL_SETTINGS: RwLock<SettingsStruct> = RwLock::new(SettingsStruct{
+        ignore_multiple_connections_per_ip: true,
+    } );
+    pub struct SettingsStruct {
+        pub ignore_multiple_connections_per_ip: bool,
+    }
+}
 
 fn main() {
     startup_experiments();
@@ -15,11 +32,11 @@ fn main() {
 }
 
 fn startup_experiments() {
-    crate::experiments::base::main();
+    spawn(|| crate::experiments::base::main());
 }
 
 fn perm_http_receiver() {
-    let listener = TcpListener::bind("127.0.0.1:7879").unwrap();
+    let listener = TcpListener::bind("0.0.0.0:80").unwrap();
 
     for stream in listener.incoming() { 
         let mut stream = stream.unwrap();
@@ -47,10 +64,24 @@ fn website_handling(stream: TcpStream, request: Request) {
 
     let link = request.request.request.clone();
 
-    if link == "/" {
+    println!("{}",link);
+
+    if link == "/style.css" {
+        reply_to_get(stream, "src/experiments/style.css");
+    } else if link == "/favicon.ico" {
+        reply_to_get(stream, "src/experiments/favicon.ico");
+    } else if link == "/" {
         crate::experiments::base::http_request(stream,request);
-    }
+    };
+   // if link == "/" {
+       
+ //   }
+
+    
+
 }
+
+
 
 pub fn get_body_and_headers(stream: &mut TcpStream) -> Option<Request> { 
     let mut buf = [0; 10000];
@@ -123,3 +154,4 @@ pub fn get_body_and_headers(stream: &mut TcpStream) -> Option<Request> {
     } 
     return None
 }
+
