@@ -30,8 +30,10 @@
         color: #FFFFFF;
         font-family: sans-serif;
         top: 0px;
-        font-size: 25px;
-        padding: 12px;
+        font-size: 27px;
+        padding: 8px;
+        z-index: 999
+
       }
       div.messagebox {
         Overflow-y:scroll;
@@ -42,10 +44,46 @@
         flex-shrink: 1;
         align-items: start;
       }
+      div.topler {
+        position:absolute;
+        width: calc(100% - 20vh - 6px);
+        height: 100%;
+      }
+      div.alert {
+        width:100%;
+        height: 12vh;
+        background: #DDDDDD;
+        border-bottom-style: dashed;
+        border-width: 2px;
+
+      }.alert_time_left {
+        position:absolute;
+        opacity: 100%;
+        height: 12vh;
+        width: 55%; 
+        background: #AEAEAE;
+        top: 0px;
+        left: 0;
+      }
+
+      div.bottomtext {
+        width:100%;
+        height: 50%;
+        font-size: 100%;
+        text-align: center;
+        position: relative
+      }
+      div.toptext {
+        width:100%;
+        height: 60%;
+        font-size: 145%;
+        text-align: center;
+        position: relative;
+      }
       input[type=text] {
          color: #000000;
          height: calc(5% - 5px);
-         font-size: 200%;
+         font-size: 100%;
          width: calc(100% - 5px);
          transform: translate(-3px, 0);
          border: solid;
@@ -78,7 +116,19 @@
     </div>
     
     <div class="box">
-    
+       <div class="topler" id="topler">
+              <div class="alert">
+                 <div class="alert_time_left"> </div>
+ 
+                 <div class="toptext" >
+                      Penis
+                 </div>
+                 <div class="bottomtext">
+                     that's the event boys
+                 </div>
+               
+             </div>
+        </div>
        <div id="Messages" class="messagebox"></div>
        <input type="text" id="MessageInput" class="messageinput" placeholder="enter text here for message">
       
@@ -86,13 +136,48 @@
     <script> 
         let MAX_MESSAGES = 250;
 
+				let restrictions = [["title","description",1733775460571,1733775460571]]; // {{"Title","Description",StartTime,EndTime}}
+				
+
+				function remake_restrictions() {
+           topler = document.getElementById("topler"); 
+           topler.innerHTML = "";
+         
+           for (restriction in restrictions) {
+              let alert = document.createElement("div");
+              alert.className  = "alert"
+              
+              
+              let alert_time_left = document.createElement("div");
+              alert_time_left.className  = "alert_time_left"
+              
+              let toptext = document.createElement("div");
+              toptext.className  = "toptext"
+              toptext.textContent = restriction[0] +" yea"
+             
+              let bottomtext = document.createElement("div");
+              bottomtext.className  = "bottomtext"
+              bottomtext.textContent = restriction[1] +" fdyea"
+              
+              alert.append(alert_time_left);
+              alert.append(toptext);
+              alert.append(bottomtext);
+              
+              topler.append(alert);
+           } 
+        }
+        
+        function cooldown_on_restrictions() {
+        
+        
+        }
 
     		function add_message(string) {
          	text_area = document.getElementById("Messages")
         
           let span = document.createElement("span");
           span.className = "message"
-          span.textContent = string;
+          span.textContent = string
           text_area.prepend(span)
 
           children = text_area.children
@@ -122,6 +207,7 @@
 
         window.onload = (event) => {
           connect_to_websockets()
+          remake_restrictions()
         };
 
         async function connect_to_websockets() {

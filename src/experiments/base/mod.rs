@@ -59,7 +59,7 @@ pub fn main() {
 
             
         }
-    })
+    });
 }
 
 pub fn http_request(stream: TcpStream, request: Request) {

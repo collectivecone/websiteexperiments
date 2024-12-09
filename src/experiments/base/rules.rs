@@ -1,4 +1,8 @@
-use std::sync::{Mutex, OnceLock};
+use std::{
+    time,
+    sync::Mutex,
+};
+use crate::utils::websocket::User;
 
 pub enum MessageType {
     User,
@@ -16,20 +20,20 @@ pub struct Rule  {
     pub name: String,
     pub desc: String,
     pub weight: f32,
-    pub process: fn(Message,User,Vec<Message>) -> Message,
+    pub process: fn(Message,&User,&Vec<Message>) -> Message,
 }
 
 static GLOBAL_RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 
 fn initalise_rules() {
     let guard  = GLOBAL_RULES.lock().unwrap();
-    let rules = *guard;
+    let mut rules = *guard;
 
     rules.push(Rule{ 
         name: String::from("TestRule1"), 
         desc: String::from("All the things"),
-        weight: 32,
-        process: |msg, user, msg_hist|  {
+        weight: 32.0,
+        process: |mut msg, user, msg_hist|  {
             msg.text.push_str(" test rule 1");
             return msg;
         }   
@@ -38,8 +42,8 @@ fn initalise_rules() {
     rules.push(Rule{ 
         name: String::from("TestRule2"), 
         desc: String::from("All the things but more"),
-        weight: 32,
-        process: |msg, user, msg_hist|  {
+        weight: 32.0,
+        process: |mut msg, user, msg_hist|  {
             msg.text.push_str(" test rule 2, with more rule");
             return msg;
         }   
@@ -48,8 +52,8 @@ fn initalise_rules() {
     rules.push(Rule{ 
         name: String::from("Reversed"), 
         desc: String::from("A real rule for once"),
-        weight: 32,
-        process: |msg, user, msg_hist|  {
+        weight: 32.0,
+        process: |mut msg, user, msg_hist|  {
             let reversed_message = msg.text.chars().rev().collect::<String>();
             msg.text = reversed_message;
             return msg;
