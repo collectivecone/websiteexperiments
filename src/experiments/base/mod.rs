@@ -1,15 +1,14 @@
 use std::{
-    fs,
-    io::Write,
     net::TcpStream,
     ops::DerefMut,
     sync::{
-        mpsc::{self,Sender},
+        mpsc,
         Mutex,
-        OnceLock,
     },
     thread::spawn,
+    time,
 };
+
 use crate::utils::{
     http::{
         HttpTypes,
@@ -22,11 +21,19 @@ use crate::utils::{
         add_new_user,
         WebsocketData,
         get_user_by_id,
-        send_to_all_users
+        send_to_all_users,
     }
 };
 
+pub mod rules;
+use rules::{
+    Rule,
+    Message,
+    MessageType,
+};
+
 static USERS: Mutex<Vec<User>> = Mutex::new(Vec::new());
+static RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 
 pub fn main() {
     let (websocket_sender, websocket_receiver) = mpsc::channel();
@@ -44,6 +51,15 @@ pub fn main() {
             send_to_all_users(users,tungstenite::Message::text(formated_string));
         }
     }
+
+    spawn(|| {
+        loop {
+            
+
+
+            
+        }
+    })
 }
 
 pub fn http_request(stream: TcpStream, request: Request) {
