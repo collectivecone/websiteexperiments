@@ -55,9 +55,8 @@ fn is_multi_connecting(user_vec: &Vec<User>, ip_string: &String) -> bool {
     return false
 }
 
-pub fn add_new_user(stream: TcpStream,headers: HashMap<String,String>,mut guard: MutexGuard<Vec<User>>)  {
+pub fn add_new_user(stream: TcpStream,headers: HashMap<String,String>,mut guard: &mut MutexGuard<Vec<User>>) -> Option<User> {
     let user_vec = guard.deref_mut();
-
 
     if let Some(ip_string) = get_ip(&headers,&stream) {
         if !is_multi_connecting(&user_vec,&ip_string) {
@@ -79,8 +78,10 @@ pub fn add_new_user(stream: TcpStream,headers: HashMap<String,String>,mut guard:
                 id: fastrand::u64(..),
             };
             guard.push(user);
+            return Some(&mut user);
         }
     };
+    None
 }
 
 pub fn get_user_by_id(users: &mut Vec<User>, id: u64 ) -> Option<&mut User> {
@@ -91,6 +92,10 @@ pub fn get_user_by_id(users: &mut Vec<User>, id: u64 ) -> Option<&mut User> {
     };
     None
 }
+
+pub fn send_to_user(user: &mut User, msg: tungstenite::Message) {
+    _ = user.websocket.send(msg);
+} 
 
 pub fn send_to_all_users(user_vec: &mut Vec<User>, msg: tungstenite::Message) {
     for user in user_vec.iter_mut() {
