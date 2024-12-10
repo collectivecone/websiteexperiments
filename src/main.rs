@@ -28,7 +28,8 @@ pub mod settings{
 
 fn main() {
     startup_experiments();
-    perm_http_receiver();
+    std::thread::sleep(std::time::Duration::from_secs_f32(1233.3));
+   // perm_http_receiver();
 }
 
 fn startup_experiments() {

@@ -1,12 +1,11 @@
 use std::{
-    time,
-    sync::Mutex,
+    ops::DerefMut, sync::Mutex, time
 };
 use crate::utils::websocket::User;
 
 pub enum MessageType {
-    User,
-    System,
+    User = 0,
+    System = 1,
 }
 
 pub struct Message {
@@ -16,6 +15,7 @@ pub struct Message {
     pub time: time::Instant,
 }
 
+
 pub struct Rule  {
     pub name: String,
     pub desc: String,
@@ -23,11 +23,11 @@ pub struct Rule  {
     pub process: fn(Message,&User,&Vec<Message>) -> Message,
 }
 
-static GLOBAL_RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
+pub static GLOBAL_RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 
-fn initalise_rules() {
-    let guard  = GLOBAL_RULES.lock().unwrap();
-    let mut rules = *guard;
+pub fn initalise_rules() {
+    let mut guard  = GLOBAL_RULES.lock().unwrap();
+    let rules = guard.deref_mut();
 
     rules.push(Rule{ 
         name: String::from("TestRule1"), 
