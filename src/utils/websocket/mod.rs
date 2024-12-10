@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap, net::TcpStream, ops::{DerefMut, IndexMut}, sync::{
+    collections::HashMap, fmt::Binary, net::TcpStream, ops::{DerefMut, IndexMut}, sync::{
         mpsc::Sender, Mutex, MutexGuard
     }, thread::{sleep,spawn}, time::Duration
 };
@@ -111,7 +111,12 @@ pub fn read_all_inputs(global_users : &'static Mutex<Vec<User>>, websocket_sende
                 loop {
                     match user.websocket.read() {
                         Ok(msg) => {
-                            _ = websocket_sender.send(WebsocketData{msg: msg,user_id: user.id});
+                            match msg {
+                                tungstenite::Message::Text(_) => {
+                                    _ = websocket_sender.send(WebsocketData{msg: msg,user_id: user.id});
+                                },
+                                _ => {}
+                            }
                         }
                         Err(e) => {
                         if e.to_string() == "Trying to work with closed connection" {

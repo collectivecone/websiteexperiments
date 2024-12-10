@@ -51,7 +51,7 @@
       }
       div.alert {
         width:100%;
-        height: 12vh;
+        height: 8vh;
         background: #DDDDDD;
         border-bottom-style: dashed;
         border-width: 2px;
@@ -117,17 +117,7 @@
     
     <div class="box">
        <div class="topler" id="topler">
-              <div class="alert">
-                 <div class="alert_time_left"> </div>
- 
-                 <div class="toptext" >
-                      Penis
-                 </div>
-                 <div class="bottomtext">
-                     that's the event boys
-                 </div>
-               
-             </div>
+        
         </div>
        <div id="Messages" class="messagebox"></div>
        <input type="text" id="MessageInput" class="messageinput" placeholder="enter text here for message">
@@ -148,13 +138,25 @@
           socket.onmessage = async function(event) {
             json = JSON.parse(event.data);
 
-						add_message(string)
+            console.log(json);
+
+            type = json[0];
+            json = json.slice(1)
+            if (type == "Messages") {
+              for(let i = 0; i < json.length; i++) {
+                let msg = json[i];
+                add_message(msg[0] + ": " + msg[1],msg[2])
+              }
+            } else if (type == "Rules") {
+              restrictions = json;
+              remake_restrictions();
+            }
           }
         }
 
         function send_message() {
             string = document.getElementById('MessageInput').value;
-            add_message(string)
+           // add_message(string)
             socket.send(string)
         }
 
@@ -188,7 +190,8 @@
            topler = document.getElementById("topler"); 
            topler.innerHTML = "";
          
-           for (restriction in restrictions) {
+           for(let i = 0; i < restrictions.length; i++) {
+              let restriction = restrictions[i];
               let alert = document.createElement("div");
               alert.className  = "alert"
               
@@ -198,11 +201,11 @@
               
               let toptext = document.createElement("div");
               toptext.className  = "toptext"
-              toptext.textContent = restriction[0] +" yea"
+              toptext.textContent = restriction[0] 
              
               let bottomtext = document.createElement("div");
               bottomtext.className  = "bottomtext"
-              bottomtext.textContent = restriction[1] +" fdyea"
+              bottomtext.textContent = restriction[1] 
               
               alert.append(alert_time_left);
               alert.append(toptext);

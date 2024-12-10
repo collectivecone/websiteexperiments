@@ -1,14 +1,16 @@
+#![allow(dead_code)]
+
 use std::{
     ops::DerefMut, sync::Mutex, time
 };
 use crate::utils::websocket::User;
 
-#[derive(Clone,Copy)]
+#[derive(Clone,Copy,Debug)]
 pub enum MessageType {
     User = 0,
     System = 1,
 }
-
+#[derive(Clone,Debug)]
 pub struct Message {
     pub text: String,
     pub by: String,
@@ -16,7 +18,7 @@ pub struct Message {
     pub time: time::Instant,
 }
 
-
+#[derive(Debug)]
 pub struct Rule  {
     pub name: String,
     pub desc: String,

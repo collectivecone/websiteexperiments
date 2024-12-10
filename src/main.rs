@@ -38,12 +38,13 @@ fn startup_experiments() {
 fn perm_http_receiver() {
     let addrs = [
         SocketAddr::from(([0, 0, 0, 0], 80)),
-        SocketAddr::from(([127, 0, 0, 1], 8000)),
+        SocketAddr::from(([127, 0, 0, 1], 80)),
     ];
     let listener = TcpListener::bind(&addrs[..]).unwrap();
     println!("Running server at {}", listener.local_addr().unwrap());
 
     for stream in listener.incoming() { 
+
         let mut stream = stream.unwrap();
         if let Some(request) = get_body_and_headers(&mut stream) {
             if request.headers.get("Upgrade").unwrap_or(&String::new()) == "websocket" {
@@ -68,8 +69,6 @@ fn websocket_handling(stream: TcpStream, request: Request ) {
 fn website_handling(stream: TcpStream, request: Request) {
 
     let link = request.request.request.clone();
-
-    println!("{}",link);
 
     if link == "/style.css" {
         reply_to_get(stream, "src/experiments/style.css");

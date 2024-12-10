@@ -32,11 +32,15 @@ use rules::{
     GLOBAL_RULES,
 };
 
-const RULE_TIME: u64 = 23;
-const RULE_MAX: usize = 4;
+const RULE_TIME: u64 = 24;
+const RULE_MAX: usize = 2;
 static USERS: Mutex<Vec<User>> = Mutex::new(Vec::new());
 static RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 static MSGS: Mutex<Vec<Message>> = Mutex::new(Vec::new());
+
+fn add_to_msg_history(msg: &mut Message, msgs: &mut Vec<Message>) {
+    msgs.push(msg.clone());
+}
 
 fn message_to_serde(msg: &Message) -> serde_json::Value {
     serde_json::json!([
@@ -62,7 +66,9 @@ fn current_rules_json() -> tungstenite::Message {
     let mut vec: Vec<serde_json::Value> = Vec::new();
     vec.push(serde_json::Value::String(String::from("Rules")));
 
-    for rule in RULES.lock().unwrap().deref_mut() {
+    let mut guard = RULES.lock().unwrap();
+    println!("{:?}",guard.deref_mut());
+    for rule in guard.deref_mut() {
         let rule_json = serde_json::json!([
              rule.name,
              rule.desc,
@@ -86,15 +92,19 @@ pub fn main() {
             let mut g_rules = RULES.lock().unwrap(); let rules: &mut Vec<Rule> = g_rules.deref_mut();
             let mut g_g_rules = GLOBAL_RULES.lock().unwrap(); let global_rules = g_g_rules.deref_mut();
             let g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
+            println!("{:?}",g_rule);
             rules.push(g_rule);
-            if rules.len() < RULE_MAX {
+            if rules.len() > RULE_MAX {
+                println!("yea");
                 let rule = rules.pop().unwrap();
                 global_rules.push(rule);
             }
+            println!("{} len and {:?}", rules.len(), rules);
             drop(g_rules); drop(g_g_rules);
         
             let mut guard= USERS.lock().unwrap(); let users: &mut Vec<User> = guard.deref_mut();
             send_to_all_users(users,current_rules_json());
+            drop(guard);
             sleep(Duration::from_secs(RULE_TIME));
         }
     });
@@ -113,11 +123,13 @@ pub fn main() {
                 time: time::Instant::now(),
             };
 
-            let mut g_msgs = MSGS.lock().unwrap(); let msgs = g_msgs.deref_mut(); 
+            let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let mut msgs = g_msgs.deref_mut(); 
             let mut g_rules = RULES.lock().unwrap(); let rules: &mut Vec<Rule> = g_rules.deref_mut();
             for rule in rules {
                 msg = (rule.process)(msg,&user,&msgs)
             }
+            
+            add_to_msg_history(&mut msg,&mut msgs);
 
             send_to_all_users(users,make_message_tung(&vec!(msg)) ) ;
         }
