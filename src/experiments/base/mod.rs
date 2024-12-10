@@ -1,5 +1,5 @@
 use std::{
-    alloc::GlobalAlloc, net::TcpStream, ops::DerefMut, sync::{
+    net::TcpStream, ops::DerefMut, sync::{
         mpsc,
         Mutex,
     }, thread::{sleep, spawn}, time::{self, Duration}
@@ -15,9 +15,9 @@ use crate::utils::{
         self,
         User,
         add_new_user,
-        WebsocketData,
         get_user_by_id,
         send_to_all_users,
+        send_to_user,
     }
 };
 
@@ -32,7 +32,7 @@ use rules::{
     GLOBAL_RULES,
 };
 
-const RULE_TIME: u32 = 23;
+const RULE_TIME: u64 = 23;
 const RULE_MAX: usize = 4;
 static USERS: Mutex<Vec<User>> = Mutex::new(Vec::new());
 static RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
@@ -40,27 +40,27 @@ static MSGS: Mutex<Vec<Message>> = Mutex::new(Vec::new());
 
 fn message_to_serde(msg: &Message) -> serde_json::Value {
     serde_json::json!([
-        msg.text,
-        msg.by,
+        msg.text.clone(),
+        msg.by.clone(),
         msg.message_type as u8,
     ])
 }
 
 fn make_message_tung(msgs: &Vec<Message>) -> tungstenite::Message {
-    let mut vec: Vec<serde_json::Value> = Vec::new();
-    vec.append(serde_json::Value::String(String::from("Messages")));
+    let mut vec: Vec<serde_json::Value> = Vec::new(); 
+    vec.push(serde_json::Value::String(String::from("Messages")));
 
     for msg in msgs {
         vec.push(message_to_serde(msg));
     }
 
-    let final_string = serde_json::Value::Array(vec);
+    let final_string = serde_json::Value::Array(vec).to_string();
     return tungstenite::Message::text(final_string);
 }
 
 fn current_rules_json() -> tungstenite::Message {
     let mut vec: Vec<serde_json::Value> = Vec::new();
-    vec.append(serde_json::Value::String(String::from("Rules")));
+    vec.push(serde_json::Value::String(String::from("Rules")));
 
     for rule in RULES.lock().unwrap().deref_mut() {
         let rule_json = serde_json::json!([
@@ -72,7 +72,7 @@ fn current_rules_json() -> tungstenite::Message {
         vec.push(rule_json);
     }
 
-    let final_string = serde_json::Value::Array(vec);
+    let final_string = serde_json::Value::Array(vec).to_string();
     return tungstenite::Message::text(final_string);
 }
 
@@ -83,17 +83,17 @@ pub fn main() {
     rules::initalise_rules();
     spawn(|| {
         loop {
-            let mut g_rules = RULES.lock().unwrap(); let mut rules: &mut Vec<Rule> = g_rules.deref_mut();
-            let mut g_g_rules = GLOBAL_RULES.lock().unwrap(); let mut global_rules = g_g_rules.deref_mut();
-            let g_rule = global_rules[fastrand::usize(..global_rules.len())];
+            let mut g_rules = RULES.lock().unwrap(); let rules: &mut Vec<Rule> = g_rules.deref_mut();
+            let mut g_g_rules = GLOBAL_RULES.lock().unwrap(); let global_rules = g_g_rules.deref_mut();
+            let g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
             rules.push(g_rule);
-            drop(g_rules); drop(g_g_rules);
             if rules.len() < RULE_MAX {
                 let rule = rules.pop().unwrap();
                 global_rules.push(rule);
             }
+            drop(g_rules); drop(g_g_rules);
         
-            let mut guard= USERS.lock().unwrap(); let mut users: &mut Vec<User> = guard.deref_mut();
+            let mut guard= USERS.lock().unwrap(); let users: &mut Vec<User> = guard.deref_mut();
             send_to_all_users(users,current_rules_json());
             sleep(Duration::from_secs(RULE_TIME));
         }
@@ -106,20 +106,20 @@ pub fn main() {
             let user: &mut User = get_user_by_id(&mut users,websocket_data.user_id).unwrap();
             let ip = user.true_ip.clone();
 
-            let msg = Message{
+            let mut msg = Message{
                 text: string,
                 by: ip, 
                 message_type: MessageType::User,
                 time: time::Instant::now(),
             };
 
-            let g_msgs = MSGS.lock().unwrap(); let msgs = g_msgs.deref_mut(); 
-            let mut g_rules = RULES.lock().unwrap(); let mut rules: &mut Vec<Rule> = g_rules.deref_mut();
+            let mut g_msgs = MSGS.lock().unwrap(); let msgs = g_msgs.deref_mut(); 
+            let mut g_rules = RULES.lock().unwrap(); let rules: &mut Vec<Rule> = g_rules.deref_mut();
             for rule in rules {
                 msg = (rule.process)(msg,&user,&msgs)
             }
 
-            send_to_all_users(users,make_message_tung(&Vec!(msg)) ) ;
+            send_to_all_users(users,make_message_tung(&vec!(msg)) ) ;
         }
     }
 }
@@ -133,12 +133,12 @@ pub fn http_request(stream: TcpStream, request: Request) {
 
 pub fn websocket_request(stream: TcpStream, request: Request) {
     let mut guard: std::sync::MutexGuard<'_, Vec<User>> = USERS.lock().unwrap();
-    let user = add_new_user(stream, request.headers, &mut guard);
+    let user_op: Option<&mut User> = add_new_user(stream, request.headers, &mut guard);
 
-    if let Some(user) = user {
-        send_to_user(&mut user, current_rules_json());
-        let guard = MSGS.lock().unwrap();
+    if let Some(user) = user_op {
+        send_to_user(user, current_rules_json());
+        let mut guard = MSGS.lock().unwrap();
         let msgs = guard.deref_mut(); 
-        send_to_user(&mut user, make_message_tung(msgs));
+        send_to_user(user, make_message_tung(msgs));
     }
 }

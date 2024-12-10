@@ -134,12 +134,57 @@
       
     </div>
     <script> 
+        let socket;
         let MAX_MESSAGES = 250;
-
 				let restrictions = [["title","description",1733775460571,1733775460571]]; // {{"Title","Description",StartTime,EndTime}}
 				
+        window.onload = (event) => {
+          connect_to_websockets()
+          remake_restrictions()
+        };
 
-				function remake_restrictions() {
+        async function connect_to_websockets() {
+          socket = new WebSocket(window.location.href);
+          socket.onmessage = async function(event) {
+            json = JSON.parse(event.data);
+
+						add_message(string)
+          }
+        }
+
+        function send_message() {
+            string = document.getElementById('MessageInput').value;
+            add_message(string)
+            socket.send(string)
+        }
+
+        
+        document.getElementById('MessageInput').addEventListener('keydown', function(e){
+            if(e.keyCode === 13) {
+              send_message()
+            };
+        });
+        
+        function cooldown_on_restrictions() {
+        
+        
+        }
+
+    		function add_message(string) {
+         	text_area = document.getElementById("Messages")
+        
+          let span = document.createElement("span");
+          span.className = "message"
+          span.textContent = string
+          text_area.prepend(span)
+
+          children = text_area.children
+          if (children.length >= MAX_MESSAGES) {
+            children[MAX_MESSAGES - 1].remove()
+          }
+        }
+
+        function remake_restrictions() {
            topler = document.getElementById("topler"); 
            topler.innerHTML = "";
          
@@ -165,57 +210,6 @@
               
               topler.append(alert);
            } 
-        }
-        
-        function cooldown_on_restrictions() {
-        
-        
-        }
-
-    		function add_message(string) {
-         	text_area = document.getElementById("Messages")
-        
-          let span = document.createElement("span");
-          span.className = "message"
-          span.textContent = string
-          text_area.prepend(span)
-
-          children = text_area.children
-          if (children.length >= MAX_MESSAGES) {
-            children[MAX_MESSAGES - 1].remove()
-
-          }
-        }
-
-        function send_message() {
-            string = document.getElementById('MessageInput').value;
-            add_message(string)
-            socket.send(string)
-        }
-
-        let socket;
-
-        for (let i = 0; i < 122; i++) { 
-          add_message("test message " + i );
-        }
-
-        document.getElementById('MessageInput').addEventListener('keydown', function(e){
-            if(e.keyCode === 13) {
-              send_message()
-            };
-        });
-
-        window.onload = (event) => {
-          connect_to_websockets()
-          remake_restrictions()
-        };
-
-        async function connect_to_websockets() {
-          socket = new WebSocket(window.location.href);
-          socket.onmessage = async function(event) {
-            string = event.data;
-						add_message(string)
-          }
         }
     </script>
     

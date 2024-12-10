@@ -28,7 +28,6 @@ pub mod settings{
 
 fn main() {
     startup_experiments();
-    std::thread::sleep(std::time::Duration::from_secs_f32(1233.3));
     perm_http_receiver();
 }
 
@@ -42,6 +41,7 @@ fn perm_http_receiver() {
         SocketAddr::from(([127, 0, 0, 1], 8000)),
     ];
     let listener = TcpListener::bind(&addrs[..]).unwrap();
+    println!("Running server at {}", listener.local_addr().unwrap());
 
     for stream in listener.incoming() { 
         let mut stream = stream.unwrap();

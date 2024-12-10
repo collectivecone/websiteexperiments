@@ -1,14 +1,7 @@
 use std::{
-    sync::{
-        MutexGuard,
-        Mutex,
-        mpsc::Sender
-    },
-    net::TcpStream,
-    collections::HashMap,
-    ops::DerefMut,
-    time::Duration,
-    thread::{sleep,spawn},
+    collections::HashMap, net::TcpStream, ops::{DerefMut, IndexMut}, sync::{
+        mpsc::Sender, Mutex, MutexGuard
+    }, thread::{sleep,spawn}, time::Duration
 };
 use tungstenite::{
     WebSocket,
@@ -55,7 +48,7 @@ fn is_multi_connecting(user_vec: &Vec<User>, ip_string: &String) -> bool {
     return false
 }
 
-pub fn add_new_user(stream: TcpStream,headers: HashMap<String,String>,mut guard: &mut MutexGuard<Vec<User>>) -> Option<User> {
+pub fn add_new_user<'a>(stream: TcpStream,headers: HashMap<String,String>,guard: &'a mut MutexGuard<Vec<User>>) -> Option<&'a mut User> {
     let user_vec = guard.deref_mut();
 
     if let Some(ip_string) = get_ip(&headers,&stream) {
@@ -77,8 +70,10 @@ pub fn add_new_user(stream: TcpStream,headers: HashMap<String,String>,mut guard:
                 true_ip: ip_string,
                 id: fastrand::u64(..),
             };
-            guard.push(user);
-            return Some(&mut user);
+            user_vec.push(user);
+            let user = user_vec.index_mut(user_vec.len() - 1);
+
+            return Some(user);
         }
     };
     None

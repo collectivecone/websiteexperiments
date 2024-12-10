@@ -3,6 +3,7 @@ use std::{
 };
 use crate::utils::websocket::User;
 
+#[derive(Clone,Copy)]
 pub enum MessageType {
     User = 0,
     System = 1,
@@ -29,11 +30,12 @@ pub fn initalise_rules() {
     let mut guard  = GLOBAL_RULES.lock().unwrap();
     let rules = guard.deref_mut();
 
+
     rules.push(Rule{ 
         name: String::from("TestRule1"), 
         desc: String::from("All the things"),
         weight: 32.0,
-        process: |mut msg, user, msg_hist|  {
+        process: |mut msg, _, _|  {
             msg.text.push_str(" test rule 1");
             return msg;
         }   
@@ -43,7 +45,7 @@ pub fn initalise_rules() {
         name: String::from("TestRule2"), 
         desc: String::from("All the things but more"),
         weight: 32.0,
-        process: |mut msg, user, msg_hist|  {
+        process: |mut msg, _, _|  {
             msg.text.push_str(" test rule 2, with more rule");
             return msg;
         }   
@@ -53,7 +55,7 @@ pub fn initalise_rules() {
         name: String::from("Reversed"), 
         desc: String::from("A real rule for once"),
         weight: 32.0,
-        process: |mut msg, user, msg_hist|  {
+        process: |mut msg, _, _|  {
             let reversed_message = msg.text.chars().rev().collect::<String>();
             msg.text = reversed_message;
             return msg;
