@@ -22,6 +22,7 @@ use crate::utils::{
 };
 
 use serde_json;
+use fastrand;
 
 pub mod rules;
 use rules::{
@@ -81,17 +82,20 @@ pub fn main() {
 
     rules::initalise_rules();
     spawn(|| {
-        let mut g_rules = RULES.lock().unwrap(); let mut rules: &mut Vec<Rule> = g_rules.deref_mut();
-        let mut g_g_rules = GLOBAL_RULES.lock().unwrap(); let mut global_rules = g_g_rules.deref_mut();
-
-        let g_rule = global_rules.pop().unwrap();
-        rules.push(g_rule);
-        drop(g_rules); drop(g_g_rules);
-        current_rules_json();
-
         loop {
-            sleep(Duration::from_secs(32));
-            println!("looping")
+            let mut g_rules = RULES.lock().unwrap(); let mut rules: &mut Vec<Rule> = g_rules.deref_mut();
+            let mut g_g_rules = GLOBAL_RULES.lock().unwrap(); let mut global_rules = g_g_rules.deref_mut();
+            let g_rule = global_rules[fastrand::usize(..global_rules.len())];
+            rules.push(g_rule);
+            drop(g_rules); drop(g_g_rules);
+            if rules.len() < RULE_MAX {
+                let rule = rules.pop().unwrap();
+                global_rules.push(rule);
+            }
+        
+            let mut guard= USERS.lock().unwrap(); let mut users: &mut Vec<User> = guard.deref_mut();
+            send_to_all_users(users,current_rules_json());
+            sleep(Duration::from_secs(RULE_TIME));
         }
     });
 
@@ -108,6 +112,12 @@ pub fn main() {
                 message_type: MessageType::User,
                 time: time::Instant::now(),
             };
+
+            let g_msgs = MSGS.lock().unwrap(); let msgs = g_msgs.deref_mut(); 
+            let mut g_rules = RULES.lock().unwrap(); let mut rules: &mut Vec<Rule> = g_rules.deref_mut();
+            for rule in rules {
+                msg = (rule.process)(msg,&user,&msgs)
+            }
 
             send_to_all_users(users,make_message_tung(&Vec!(msg)) ) ;
         }

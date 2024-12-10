@@ -1,5 +1,5 @@
 use std::{
-    net::{TcpListener, TcpStream},
+    net::{TcpListener, TcpStream,SocketAddr},
     collections::HashMap,
     thread::spawn,
 };
@@ -29,7 +29,7 @@ pub mod settings{
 fn main() {
     startup_experiments();
     std::thread::sleep(std::time::Duration::from_secs_f32(1233.3));
-   // perm_http_receiver();
+    perm_http_receiver();
 }
 
 fn startup_experiments() {
@@ -37,7 +37,11 @@ fn startup_experiments() {
 }
 
 fn perm_http_receiver() {
-    let listener = TcpListener::bind("0.0.0.0:80").unwrap();
+    let addrs = [
+        SocketAddr::from(([0, 0, 0, 0], 80)),
+        SocketAddr::from(([127, 0, 0, 1], 8000)),
+    ];
+    let listener = TcpListener::bind(&addrs[..]).unwrap();
 
     for stream in listener.incoming() { 
         let mut stream = stream.unwrap();
