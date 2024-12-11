@@ -67,7 +67,6 @@ fn current_rules_json() -> tungstenite::Message {
     vec.push(serde_json::Value::String(String::from("Rules")));
 
     let mut guard = RULES.lock().unwrap();
-    println!("{:?}",guard.deref_mut());
     for rule in guard.deref_mut() {
         let rule_json = serde_json::json!([
              rule.name,
@@ -92,14 +91,12 @@ pub fn main() {
             let mut g_rules = RULES.lock().unwrap(); let rules: &mut Vec<Rule> = g_rules.deref_mut();
             let mut g_g_rules = GLOBAL_RULES.lock().unwrap(); let global_rules = g_g_rules.deref_mut();
             let g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
-            println!("{:?}",g_rule);
             rules.push(g_rule);
             if rules.len() > RULE_MAX {
-                println!("yea");
                 let rule = rules.pop().unwrap();
                 global_rules.push(rule);
             }
-            println!("{} len and {:?}", rules.len(), rules);
+
             drop(g_rules); drop(g_g_rules);
         
             let mut guard= USERS.lock().unwrap(); let users: &mut Vec<User> = guard.deref_mut();
@@ -130,7 +127,6 @@ pub fn main() {
             }
             
             add_to_msg_history(&mut msg,&mut msgs);
-
             send_to_all_users(users,make_message_tung(&vec!(msg)) ) ;
         }
     }

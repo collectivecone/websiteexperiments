@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap, fmt::Binary, net::TcpStream, ops::{DerefMut, IndexMut}, sync::{
+    collections::HashMap, net::TcpStream, ops::{DerefMut, IndexMut}, sync::{
         mpsc::Sender, Mutex, MutexGuard
     }, thread::{sleep,spawn}, time::Duration
 };

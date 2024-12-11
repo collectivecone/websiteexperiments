@@ -1,3 +1,4 @@
+use core::net;
 use std::{
     net::{TcpListener, TcpStream,SocketAddr},
     collections::HashMap,
@@ -39,9 +40,13 @@ fn perm_http_receiver() {
     let addrs = [
         SocketAddr::from(([0, 0, 0, 0], 80)),
         SocketAddr::from(([127, 0, 0, 1], 80)),
+        SocketAddr::from(([127, 0, 0, 1], 8000)),
     ];
     let listener = TcpListener::bind(&addrs[..]).unwrap();
     println!("Running server at {}", listener.local_addr().unwrap());
+    if let net::IpAddr::V4(a) =  listener.local_addr().unwrap().ip() {
+        if !a.is_unspecified() {println!("try running server with admin permissions to connect to internet");}
+    };
 
     for stream in listener.incoming() { 
 
