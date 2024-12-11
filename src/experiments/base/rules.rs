@@ -36,6 +36,12 @@ enum Section {
 }
 use Section::{Word,SpaceOrPunc};
 
+fn censore_word(msg: &mut String) {
+    let original_len = msg.len();
+    msg.clear();
+    msg.push_str("*".repeat(original_len).as_str() );
+}
+
 fn combine_section_vec_into_string(msg_section: Vec<Section>) -> String {
     let mut msg = String::new();
     for sect in msg_section {
@@ -52,7 +58,7 @@ fn combine_section_vec_into_string(msg_section: Vec<Section>) -> String {
     return msg;
 }
 
-fn split_into_word_vec(text: String) ->  Vec<Section> {
+fn split_into_word_vec(text: &String) ->  Vec<Section> {
     let mut vec: Vec<Section> = Vec::new();
 
     let punc = r#" .,<>';:[]{}#~/!"£$%^&*()"#;
@@ -96,8 +102,6 @@ pub fn initalise_rules() {
     let mut guard  = GLOBAL_RULES.lock().unwrap();
     let rules = guard.deref_mut();
 
-    println!("{:?}",split_into_word_vec(String::from("This is a string with sentences. And here's a quote 'quote' ")));
-
 
     rules.push(Rule{ 
         name: String::from("Reversed"), 
@@ -117,9 +121,9 @@ pub fn initalise_rules() {
         process: |mut msg, _, _|  {
             let vowels = "aeiou".chars();
             let mut string: String= String::new();
-            for letter in msg.text.chars() {
+            'outer: for letter in msg.text.chars() {
                 for char in vowels.clone() {
-                    if char == letter {break}
+                    if char == letter {continue 'outer}
                 }
                 string.push(letter);
             }
@@ -158,7 +162,7 @@ pub fn initalise_rules() {
                 };
             });
             let rev_chars = chars.clone().rev();
-            if rev_chars.collect::<String>() == chars.collect::<String>() {
+            if rev_chars.collect::<String>().to_lowercase() == chars.collect::<String>().to_lowercase() {
                 return msg;
             } else {
                 msg.text = msg.text + " test pand";
@@ -170,12 +174,32 @@ pub fn initalise_rules() {
 
     rules.push(Rule{ 
         name: String::from("Even Steven"), 
-        desc: String::from("Only sentences with an even amount of words are permited"),
+        desc: String::from("Only sentences with an even amount of words are permited or every other word is censored"),
         weight: 1.0,
-        process: |msg, _, _|  {
+        process: |mut msg, _, _|  {
+            let mut sects = split_into_word_vec(&msg.text);
+            let mut count: u32 = 0;
+            for sect in &sects {
+                if let Section::Word(_) = sect {
+                    count += 1;
+                }
+            }
+            if count % 2 == 0 {return msg} 
+               
+            let i = 0;
+            for sect in sects.iter_mut() {
+                if let Section::Word(string) = sect {
+                    censore_word(string);
+                }
+            }
+            msg.text = combine_section_vec_into_string(sects);
+
             return msg;
+            
         }   
     });
+
+    /* 
     rules.push(Rule{ 
         name: String::from("Repeating yourself"), 
         desc: String::from("If you do not use a word that has been sent in the last 30 messages, it is replaced by one that has"),
@@ -289,6 +313,7 @@ pub fn initalise_rules() {
         }   
     });
 
+    */
 
     
 

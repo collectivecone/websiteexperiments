@@ -93,7 +93,7 @@ pub fn main() {
             let g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
             rules.push(g_rule);
             if rules.len() > RULE_MAX {
-                let rule = rules.pop().unwrap();
+                let rule = rules.remove(0);
                 global_rules.push(rule);
             }
 
