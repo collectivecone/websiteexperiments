@@ -35,6 +35,7 @@ enum Section {
     SpaceOrPunc(String),
 }
 use Section::{Word,SpaceOrPunc};
+use crate::utils::filter;
 
 fn censore_word(msg: &mut String) {
     let original_len = msg.len();
@@ -60,6 +61,7 @@ fn combine_section_vec_into_string(msg_section: Vec<Section>) -> String {
 
 fn split_into_word_vec(text: &String) ->  Vec<Section> {
     let mut vec: Vec<Section> = Vec::new();
+
 
     let punc = r#" .,<>';:[]{}#~/!"£$%^&*()"#;
     let mut current_section: Section = Word(String::new());
@@ -186,25 +188,65 @@ pub fn initalise_rules() {
             }
             if count % 2 == 0 {return msg} 
                
-            let i = 0;
+            let mut i = 0;
             for sect in sects.iter_mut() {
                 if let Section::Word(string) = sect {
-                    censore_word(string);
+                    i += 1;
+                    if i % 2 == 1 {
+                        censore_word(string);
+                    }
                 }
             }
             msg.text = combine_section_vec_into_string(sects);
 
             return msg;
-            
         }   
     });
 
-    /* 
+    
     rules.push(Rule{ 
-        name: String::from("Repeating yourself"), 
+        name: String::from("Hive mind"), 
         desc: String::from("If you do not use a word that has been sent in the last 30 messages, it is replaced by one that has"),
         weight: 1.0,
-        process: |msg, _, _|  {
+        process: |mut msg: Message, _, msg_history|  {
+            let mut word_list: Vec<String> = Vec::new();
+            word_list.push(String::from("elephant"));
+            for i in 0..(30.min(msg_history.len())) {
+                let msg = msg_history.get(i).unwrap();
+                let sects = split_into_word_vec(&msg.text);
+                for sect in sects {
+                    if let Word(string) = sect {
+                        let a= string.to_lowercase();
+                        word_list.push(a);
+                    }
+                }
+            }
+            println!("{:?}",word_list);
+
+            let mut sects = split_into_word_vec(&msg.text);
+            println!("{:?}",sects);
+            for sect in &mut sects {
+                match sect {
+                    Word(string) => {
+                        let mut exists: bool = false; 
+                        for word in &word_list {
+                            if word == string {
+                                exists = true;
+                                break
+                            }
+                        }
+                        if !exists {
+                            string.clear();
+                            let random_word = &word_list[fastrand::usize(0..word_list.len())];
+                            string.push_str(random_word.as_str());
+                        }
+                    },
+                    _ => {},
+                }
+            }
+            println!("{:?}",sects);
+
+            msg.text = combine_section_vec_into_string(sects);
             return msg;
         }   
     });
@@ -218,49 +260,105 @@ pub fn initalise_rules() {
     });
 
     rules.push(Rule{ 
-        name: String::from(".... .. ... / .-. ..- .-.. . / ... ..- -.-. -.- ..."), 
-        desc: String::from("You can only use morse code characters of .-/ and spaces"),
-        weight: 0.2,
-        process: |msg, _, _|  {
-            return msg;
-        }   
-    });
-
-    rules.push(Rule{ 
         name: String::from("Gluttony"), 
-        desc: String::from("You can only use words that include a single vowel or less"),
+        desc: String::from("You can only use words that include a single vowel or its censored"),
         weight: 0.2,
-        process: |msg, _, _|  {
+        process: |mut msg, _, _|  {
+            let vowels = "aeiou".chars();
+            let mut sects = split_into_word_vec(&msg.text);
+            for mut sect in &mut sects {
+                if let Word(string) = &mut sect {
+                    let mut count = 0;
+                    for letter in string.chars() {
+                        for char in vowels.clone() {
+                            if char == letter {count += 1;}
+                        }
+                    }
+                    if count != 1 {
+                        censore_word(string);
+                    }
+                }
+            }
+
+            msg.text = combine_section_vec_into_string(sects);
             return msg;
         }   
     });
 
     rules.push(Rule{ 
         name: String::from("The elephant in the room"), 
-        desc: String::from("you must mention the elephant in the room"),
+        desc: String::from("you must mention the elephant in the room or your message just becomes 'Elephant'"),
         weight: 0.2,
-        process: |msg, _, _|  {
-        
-            return msg;
-
-
+        process: |mut msg, _, _|  {
+            if let Some(_) = msg.text.to_lowercase().as_str().find("elephant") {
+                return msg
+            } else {
+                msg.text = String::from("Elephant");
+                return msg;
+            };
         }   
     });
 
     rules.push(Rule{ 
         name: String::from("Simplicity"), 
-        desc: String::from("You must only use the top 250 most common english words"),
+        desc: String::from("You must only use the top 1000 most common english words or it is replaced by one that is"),
         weight: 0.2,
-        process: |msg, _, _|  {
+        process: |mut msg, _, _|  {
+            let word_list: Vec<String> = filter::get_most_common_words();
+
+            let mut sects = split_into_word_vec(&msg.text);
+            for mut sect in &mut sects {
+                match &mut sect {
+                    Word(string) => {
+                        let mut exists: bool = false; 
+                        for word in &word_list {
+                            if word.to_lowercase() == string.to_lowercase() {
+                                exists = true;
+                                break
+                            }
+                        }
+                        if !exists {
+                            string.clear();
+                            let random_word = &word_list[fastrand::usize(0..word_list.len())];
+                            string.push_str(random_word.as_str());
+                        }
+                    },
+                    _ => {},
+                }
+            }
+            msg.text = combine_section_vec_into_string(sects);
             return msg;
         }   
     });
 
     rules.push(Rule{ 
         name: String::from("Research document"), 
-        desc: String::from("You cannot use personal pronouns"),
+        desc: String::from("You cannot use personal pronouns; which are replaced by the name derek"),
         weight: 0.2,
-        process: |msg, _, _|  {
+        process: |mut msg, _, _|  {
+            let word_list: Vec<&str> = vec!("I","me","you","he","she","they","them","him","her","hers","his","its","theirs","our","your");
+
+            let mut sects = split_into_word_vec(&msg.text);
+            for mut sect in &mut sects {
+                match &mut sect {
+                    Word(string) => {
+                        let mut exists: bool = false; 
+                        for word in &word_list {
+                            if *word.to_lowercase() == string.as_str().to_lowercase() {
+                                exists = true;
+                                break
+                            }
+                        }
+                        if exists {
+                            string.clear();
+                            string.push_str("derek");
+                        }
+                    },
+                    _ => {},
+                }
+            }
+            msg.text = combine_section_vec_into_string(sects);
+
             return msg;
         }   
     });
@@ -275,21 +373,30 @@ pub fn initalise_rules() {
         }   
     });
 
-
-    rules.push(Rule{ 
-        name: String::from("Caveman speak"), 
-        desc: String::from("All sentences are two words long and you used use me instead of I"),
-        weight: 0.2,
-        process: |msg, _, _|  {
-            return msg;
-        }   
-    });
-
     rules.push(Rule{ 
         name: String::from("Ordered"), 
         desc: String::from("All words must be in alphabetical order in your message"),
         weight: 0.2,
-        process: |msg, _, _|  {
+        process: |mut msg, _, _|  {
+            let mut sects = split_into_word_vec(&msg.text);
+            let mut words: Vec<String> = Vec::new();
+            for sect in &mut sects {
+                if let Section::Word(string) = sect {
+                    words.push(string.clone());
+                } 
+            };
+            words.sort_by_key(|name| name.to_lowercase());
+            let mut i: usize = 0;
+            
+            for sect in &mut sects {
+                if let Section::Word(string) = sect {
+                    string.clear();
+                    string.push_str(words[i].as_str());
+                    i += 1;
+                }
+            }
+
+            msg.text = combine_section_vec_into_string(sects);
             return msg;
         }   
     });
@@ -298,7 +405,41 @@ pub fn initalise_rules() {
         name: String::from("Unique"), 
         desc: String::from("You cannot use words used by the most 10 recent messages"),
         weight: 1.0,
-        process: |msg, _, _|  {
+        process: |mut msg, _, msg_history|  {
+            let mut word_list: Vec<String> = Vec::new();
+            for i in 0..(30.min(msg_history.len() - 1)) {
+                let msg = msg_history.get(i).unwrap();
+                let sects = split_into_word_vec(&msg.text);
+                for sect in sects {
+                    if let Word(string) = sect {
+                        let a= string.to_lowercase();
+                        word_list.push(a);
+                    }
+                }
+            }
+
+            let mut sects = split_into_word_vec(&msg.text);
+            for mut sect in &mut sects {
+                match &mut sect {
+                    Word(string) => {
+                        let mut exists: bool = false; 
+                        for word in &word_list {
+                            if word.to_lowercase() == string.to_lowercase() {
+                                exists = true;
+                                break
+                            }
+                        }
+                        if exists {
+                            censore_word(string);
+                        }
+                    },
+                    _ => {},
+                }
+            }
+
+            msg.text = combine_section_vec_into_string(sects);
+
+
             return msg;
         }   
     });
@@ -309,13 +450,23 @@ pub fn initalise_rules() {
         desc: String::from("Random letters get swap with ones near themselves"),
         weight: 1.0,
         process: |mut msg, _, _|  {
+            let mut chars = msg.text.chars().collect::<Vec<_>>();
+
+            for _ in 0..10 {
+                let random_index = fastrand::usize(0..chars.len() - 1);
+
+                let mut new_index = random_index;
+                if fastrand::bool() {
+                    new_index += 1
+                } else {new_index -= 1}
+                new_index = new_index.clamp(0,chars.len() - 1);
+
+                chars.swap(random_index,new_index);
+            }
+
+            msg.text = chars.into_iter().collect();
+
             return msg;
         }   
     });
-
-    */
-
-    
-
-
 }
