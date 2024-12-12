@@ -1,11 +1,21 @@
 use std::{
-    net::TcpStream, ops::DerefMut, sync::{
+    fs:: {
+        File,
+        OpenOptions
+    }, io::Write, net::TcpStream, ops::DerefMut, sync::{
         mpsc,
         Mutex,
-    }, thread::{sleep, spawn}, time::{self, Duration}
+    }, thread::{
+        sleep,
+        spawn
+    }, time::{
+        self,
+        Duration
+    }
 };
 
 use crate::utils::{
+    self,
     http::{
         HttpTypes,
         Request,
@@ -37,9 +47,41 @@ const RULE_MAX: usize = 2;
 static USERS: Mutex<Vec<User>> = Mutex::new(Vec::new());
 static RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 static MSGS: Mutex<Vec<Message>> = Mutex::new(Vec::new());
+static UNSAVED_MSG: Mutex<Vec<Message>> = Mutex::new(Vec::new());
+
+
+fn write_msg_history() {
+    let mut guard = UNSAVED_MSG.lock().unwrap();
+    let mut unsaved_msgs = guard.deref_mut();
+
+    let mut file = OpenOptions::new()
+        .append(true)
+        .create(true)
+        .open("src/experiments/basemsghistory.txt")
+        .unwrap();
+
+    let mut message_list = String::new();
+
+    for msg in &(*unsaved_msgs) {
+        let msg = msg;
+        println!("{:?}",msg);
+        let mut save = message_to_serde(msg).to_string();
+        save.push('\n');
+        message_list.push_str(save.as_str());
+    }
+    println!("{}",message_list);
+    let bytes: &[u8] = message_list.as_str().as_bytes();
+    file.write_all(bytes);
+    drop(file);
+
+    unsaved_msgs.clear();
+}
 
 fn add_to_msg_history(msg: &mut Message, msgs: &mut Vec<Message>) {
     msgs.push(msg.clone());
+    let mut guard = UNSAVED_MSG.lock().unwrap();
+    let mut unsaved_msg = guard.deref_mut();
+    unsaved_msg.push(msg.clone());
 }
 
 fn message_to_serde(msg: &Message) -> serde_json::Value {
@@ -76,7 +118,7 @@ fn current_rules_json() -> tungstenite::Message {
         ]);
         vec.push(rule_json);
     }
-
+    
     let final_string = serde_json::Value::Array(vec).to_string();
     return tungstenite::Message::text(final_string);
 }
@@ -102,6 +144,7 @@ pub fn main() {
             let mut guard= USERS.lock().unwrap(); let users: &mut Vec<User> = guard.deref_mut();
             send_to_all_users(users,current_rules_json());
             drop(guard);
+            write_msg_history();
             sleep(Duration::from_secs(RULE_TIME));
         }
     });
@@ -117,7 +160,7 @@ pub fn main() {
                 text: string,
                 by: ip, 
                 message_type: MessageType::User,
-                time: time::Instant::now(),
+                time: utils::unix_time(),
             };
 
             let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let mut msgs = g_msgs.deref_mut(); 

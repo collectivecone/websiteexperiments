@@ -16,7 +16,7 @@ pub struct Message {
     pub text: String,
     pub by: String,
     pub message_type: MessageType,
-    pub time: time::Instant,
+    pub time: u64,
 }
 
 #[derive(Debug)]
@@ -62,7 +62,6 @@ fn combine_section_vec_into_string(msg_section: Vec<Section>) -> String {
 fn split_into_word_vec(text: &String) ->  Vec<Section> {
     let mut vec: Vec<Section> = Vec::new();
 
-
     let punc = r#" .,<>';:[]{}#~/!"£$%^&*()"#;
     let mut current_section: Section = Word(String::new());
 
@@ -104,7 +103,7 @@ pub fn initalise_rules() {
     let mut guard  = GLOBAL_RULES.lock().unwrap();
     let rules = guard.deref_mut();
 
-
+    
     rules.push(Rule{ 
         name: String::from("Reversed"), 
         desc: String::from("Self explaintory"),
