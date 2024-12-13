@@ -1,8 +1,6 @@
 use std::{
-    fs:: {
-        File,
-        OpenOptions
-    }, io::Write, net::TcpStream, ops::DerefMut, sync::{
+    fs::OpenOptions
+    , io::{Read, Write}, net::TcpStream, ops::DerefMut, sync::{
         mpsc,
         Mutex,
     }, thread::{
@@ -31,7 +29,7 @@ use crate::utils::{
     }
 };
 
-use serde_json;
+use serde_json::{self, json, Error};
 use fastrand;
 
 pub mod rules;
@@ -44,6 +42,7 @@ use rules::{
 
 const RULE_TIME: u64 = 24;
 const RULE_MAX: usize = 2;
+const MAX_MSGS: usize = 1000;
 static USERS: Mutex<Vec<User>> = Mutex::new(Vec::new());
 static RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 static MSGS: Mutex<Vec<Message>> = Mutex::new(Vec::new());
@@ -52,12 +51,12 @@ static UNSAVED_MSG: Mutex<Vec<Message>> = Mutex::new(Vec::new());
 
 fn write_msg_history() {
     let mut guard = UNSAVED_MSG.lock().unwrap();
-    let mut unsaved_msgs = guard.deref_mut();
+    let unsaved_msgs = guard.deref_mut();
 
     let mut file = OpenOptions::new()
         .append(true)
         .create(true)
-        .open("src/experiments/basemsghistory.txt")
+        .open("src/experiments/base/msghistory.txt")
         .unwrap();
 
     let mut message_list = String::new();
@@ -69,18 +68,60 @@ fn write_msg_history() {
         save.push('\n');
         message_list.push_str(save.as_str());
     }
-    println!("{}",message_list);
+
     let bytes: &[u8] = message_list.as_str().as_bytes();
-    file.write_all(bytes);
-    drop(file);
+    _=file.write_all(bytes);
 
     unsaved_msgs.clear();
+}
+
+fn read_msg_history() {
+    let  file_o = OpenOptions::new()
+    .read(true)
+    .open("src/experiments/base/msghistory.txt");
+
+    if let Err(_) = file_o {
+        return;
+    }
+    let mut file = file_o.unwrap();
+
+    let mut data = String::new();
+    _= file.read_to_string(&mut data);
+
+    let mut msgs_str = data.split("\n").collect::<Vec<&str>>();
+    if msgs_str.len() > MAX_MSGS {
+        msgs_str = msgs_str[(msgs_str.len() - MAX_MSGS)..].to_vec();
+
+    }
+
+    let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let mut msgs = g_msgs.deref_mut(); 
+
+    for msg in msgs_str {
+        let mut a = String::from("");
+        a.push_str(msg);
+        println!("{}",msg);
+
+        let json: Result<serde_json::Value, Error> = serde_json::from_str(msg);
+        if let Ok(okayness) = json {
+            if let serde_json::Value::Array(array) = okayness {
+                msgs.push(Message{
+                    text: String::from(array[0].as_str().unwrap()),
+                    by: String::from(array[1].as_str().unwrap()),
+                    message_type: {
+                        let num = array[2].as_u64().unwrap();
+                        if num == 0 {MessageType::User} else {MessageType::System}
+                    },
+                    time: array[3].as_u64().unwrap(),
+                })
+            }
+        }
+    }
 }
 
 fn add_to_msg_history(msg: &mut Message, msgs: &mut Vec<Message>) {
     msgs.push(msg.clone());
     let mut guard = UNSAVED_MSG.lock().unwrap();
-    let mut unsaved_msg = guard.deref_mut();
+    let unsaved_msg = guard.deref_mut();
     unsaved_msg.push(msg.clone());
 }
 
@@ -89,6 +130,7 @@ fn message_to_serde(msg: &Message) -> serde_json::Value {
         msg.text.clone(),
         msg.by.clone(),
         msg.message_type as u8,
+        msg.time,
     ])
 }
 
@@ -127,6 +169,7 @@ pub fn main() {
     let (websocket_sender, websocket_receiver) = mpsc::channel();
     websocket::read_all_inputs(&USERS,websocket_sender);
 
+    read_msg_history();
     rules::initalise_rules();
     spawn(|| {
         loop {

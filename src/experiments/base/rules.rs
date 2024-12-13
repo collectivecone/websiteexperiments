@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use std::{
-    ops::DerefMut, sync::Mutex, time
+    ops::DerefMut, sync::Mutex
 };
 use crate::utils::websocket::User;
 use fastrand;
@@ -406,7 +406,7 @@ pub fn initalise_rules() {
         weight: 1.0,
         process: |mut msg, _, msg_history|  {
             let mut word_list: Vec<String> = Vec::new();
-            for i in 0..(30.min(msg_history.len() - 1)) {
+            for i in 0..(30.min(msg_history.len()) ) {
                 let msg = msg_history.get(i).unwrap();
                 let sects = split_into_word_vec(&msg.text);
                 for sect in sects {
@@ -452,12 +452,19 @@ pub fn initalise_rules() {
             let mut chars = msg.text.chars().collect::<Vec<_>>();
 
             for _ in 0..10 {
-                let random_index = fastrand::usize(0..chars.len() - 1);
+                let random_index = fastrand::usize(0..chars.len());
 
                 let mut new_index = random_index;
                 if fastrand::bool() {
-                    new_index += 1
-                } else {new_index -= 1}
+                    if new_index != chars.len() - 1 {
+                        new_index += 1
+                    }
+                } else {
+                    if new_index != 0 {
+                        new_index -= 1
+                    } 
+                   
+                }
                 new_index = new_index.clamp(0,chars.len() - 1);
 
                 chars.swap(random_index,new_index);
