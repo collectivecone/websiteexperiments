@@ -1,14 +1,20 @@
 use std::fs;
+use std::collections::{hash_set, HashSet};
+use std::hash::Hash;
 
-pub fn get_most_common_words() -> Vec<String> {
-
+pub fn get_most_common_words() -> HashSet<String> {
     let contents = fs::read_to_string("src/utils/filter/mostcommonwords.txt")
     .expect("Should have been able to read the file");
 
-    let vec: Vec<String> = contents.split("\n").map(|s| {return String::from(s)}).collect();
+    let hash: HashSet<String> = contents.split("\n").map(|s| {return String::from(s)}).collect();
 
+    return hash;
+}
 
+pub fn get_all_word_hashset() -> HashSet<String> {
+    let contents = fs::read_to_string("src/utils/filter/words_alpha.txt")
+    .expect("Should have been able to read the file");
 
-    return vec;
-
+    let hash: HashSet<String> = contents.split("\n").map(|s| {return String::from(s)}).collect();
+    return hash;
 }
