@@ -1,7 +1,8 @@
 #![allow(dead_code)]
 
 use std::{
-    ops::DerefMut, sync::Mutex
+    ops::DerefMut, sync::Mutex,
+    collections::HashSet,
 };
 use crate::utils::websocket::User;
 use fastrand;
@@ -303,20 +304,14 @@ pub fn initalise_rules() {
         desc: String::from("You must only use the top 1000 most common english words or it is replaced by one that is"),
         weight: 0.2,
         process: |mut msg, _, _|  {
-            let word_list: Vec<String> = filter::get_most_common_words();
+            let word_hash: HashSet<String> = filter::get_most_common_words();
+            let word_list: Vec<String> = word_hash.iter().map(|str| str.clone()).collect();
 
             let mut sects = split_into_word_vec(&msg.text);
             for mut sect in &mut sects {
                 match &mut sect {
                     Word(string) => {
-                        let mut exists: bool = false; 
-                        for word in &word_list {
-                            if word.to_lowercase() == string.to_lowercase() {
-                                exists = true;
-                                break
-                            }
-                        }
-                        if !exists {
+                        if let None = word_hash.get(string) {
                             string.clear();
                             let random_word = &word_list[fastrand::usize(0..word_list.len())];
                             string.push_str(random_word.as_str());
@@ -365,9 +360,28 @@ pub fn initalise_rules() {
 
     rules.push(Rule{ 
         name: String::from("English degree"), 
-        desc: String::from("50% of your message must be valid english words above 10 letters"),
+        desc: String::from("50% of your message must be valid english words above 8 letters or all words under 8 letters are censored"),
         weight: 0.2,
-        process: |msg, _, _|  {
+        process: |mut msg, _, _|  {
+            let word_hash = filter::get_all_word_hashset();
+
+            let total_words: f32 = 0;
+            let total_passing_words: f32 = 0;
+
+            let mut sects = split_into_word_vec(&msg.text);
+            for mut sect in &mut sects {
+                match &mut sect {
+                    Word(string) => {
+                        total_words += 1;
+                        if string.len() > 8 {
+                            if let Some(_) = word_hash.get(value)
+                        }
+                    },
+                    _ => {},
+                }
+            }
+            msg.text = combine_section_vec_into_string(sects);
+
             return msg;
         }   
     });

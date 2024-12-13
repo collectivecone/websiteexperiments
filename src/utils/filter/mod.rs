@@ -1,6 +1,5 @@
 use std::fs;
-use std::collections::{hash_set, HashSet};
-use std::hash::Hash;
+use std::collections::HashSet;
 
 pub fn get_most_common_words() -> HashSet<String> {
     let contents = fs::read_to_string("src/utils/filter/mostcommonwords.txt")

@@ -6,10 +6,8 @@ use std::{
     }, thread::{
         sleep,
         spawn
-    }, time::{
-        self,
-        Duration
-    }
+    }, time::Duration
+    
 };
 
 use crate::utils::{
@@ -29,7 +27,7 @@ use crate::utils::{
     }
 };
 
-use serde_json::{self, json, Error};
+use serde_json::{self, Error};
 use fastrand;
 
 pub mod rules;
@@ -94,7 +92,7 @@ fn read_msg_history() {
 
     }
 
-    let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let mut msgs = g_msgs.deref_mut(); 
+    let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let msgs = g_msgs.deref_mut(); 
 
     for msg in msgs_str {
         let mut a = String::from("");
