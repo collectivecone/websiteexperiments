@@ -1,13 +1,17 @@
 use std::{
-    fs::OpenOptions
-    , io::{Read, Write}, net::TcpStream, ops::DerefMut, sync::{
+    fs:: {
+        File,
+        OpenOptions
+    }, io::Write, net::TcpStream, ops::DerefMut, sync::{
         mpsc,
         Mutex,
     }, thread::{
         sleep,
         spawn
-    }, time::Duration
-    
+    }, time::{
+        self,
+        Duration
+    }
 };
 
 use crate::utils::{
@@ -172,14 +176,26 @@ pub fn main() {
         loop {
             let mut g_rules = RULES.lock().unwrap(); let rules: &mut Vec<Rule> = g_rules.deref_mut();
             let mut g_g_rules = GLOBAL_RULES.lock().unwrap(); let global_rules = g_g_rules.deref_mut();
+           
             let g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
+            let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let mut msgs = g_msgs.deref_mut(); 
             rules.push(g_rule);
             if rules.len() > RULE_MAX {
                 let rule = rules.remove(0);
-                global_rules.push(rule);
-            }
+                let sysyem_message = Message{
+                    text: format!("{} has been replaced by {}", g_rule.name.clone(), rule.name.clone()),
+                    time: utils::unix_time(),
+                    message_type: MessageType::System,
+                    by: String::from("server"),
 
-            drop(g_rules); drop(g_g_rules);
+                };
+                add_to_msg_history(&mut sysyem_message,&mut msgs);
+                send_to_all_users(users,make_message_tung(&vec!(msg)));
+
+                global_rules.push(rule);
+                
+            }
+            drop(g_rules); drop(g_g_rules); drop(g_msgs);
         
             let mut guard= USERS.lock().unwrap(); let users: &mut Vec<User> = guard.deref_mut();
             send_to_all_users(users,current_rules_json());
