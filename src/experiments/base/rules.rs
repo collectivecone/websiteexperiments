@@ -250,14 +250,6 @@ pub fn initalise_rules() {
             return msg;
         }   
     });
-    rules.push(Rule{ 
-        name: String::from("Pretty much 1984"), 
-        desc: String::from("You can only use words that appear in these restrictions. So, that does sucks. hope you like it"),
-        weight: 32.0,
-        process: |msg, _, _|  {
-            return msg;
-        }   
-    });
 
     rules.push(Rule{ 
         name: String::from("Gluttony"), 
@@ -311,7 +303,7 @@ pub fn initalise_rules() {
             for mut sect in &mut sects {
                 match &mut sect {
                     Word(string) => {
-                        if let None = word_hash.get(string) {
+                        if word_hash.contains(&string.to_lowercase()) {
                             string.clear();
                             let random_word = &word_list[fastrand::usize(0..word_list.len())];
                             string.push_str(random_word.as_str());
@@ -365,21 +357,30 @@ pub fn initalise_rules() {
         process: |mut msg, _, _|  {
             let word_hash = filter::get_all_word_hashset();
 
-            let total_words: f32 = 0;
-            let total_passing_words: f32 = 0;
+            let mut total_words: f32 = 0.0;
+            let mut total_passing_words: f32 = 0.0;
 
             let mut sects = split_into_word_vec(&msg.text);
             for mut sect in &mut sects {
                 match &mut sect {
                     Word(string) => {
-                        total_words += 1;
+                        total_words += 1.0;
                         if string.len() > 8 {
-                            if let Some(_) = word_hash.get(value)
+                            if word_hash.contains(&string.to_lowercase())  {
+                                total_passing_words += 1.0;
+                                continue
+                            }
                         }
+                        censore_word(string);
                     },
                     _ => {},
                 }
             }
+
+            if (total_passing_words / total_words) >= 0.5 {
+                return msg;
+            }
+
             msg.text = combine_section_vec_into_string(sects);
 
             return msg;
