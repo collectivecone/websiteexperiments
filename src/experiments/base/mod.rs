@@ -1,17 +1,12 @@
 use std::{
-    fs:: {
-        File,
+    fs:: 
         OpenOptions
-    }, io::{Read, Write}, net::TcpStream, ops::DerefMut, sync::{
+    , io::{Read, Write}, net::TcpStream, ops::DerefMut, sync::{
         mpsc,
         Mutex,
-    }, thread::{
-        sleep,
-        spawn
-    }, time::{
-        self,
-        Duration
-    }
+    }, thread::{sleep,spawn},
+    time:: Duration
+    
 };
 
 use crate::utils::{
@@ -94,7 +89,7 @@ fn read_msg_history() {
     if msgs_str.len() > MAX_MSGS {
         msgs_str = msgs_str[(msgs_str.len() - MAX_MSGS)..].to_vec();
 
-    }
+    };
 
     let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let msgs = g_msgs.deref_mut(); 
 
@@ -174,34 +169,41 @@ pub fn main() {
     rules::initalise_rules();
     spawn(|| {
         loop {
+    
             let mut g_rules = RULES.lock().unwrap(); let rules: &mut Vec<Rule> = g_rules.deref_mut();
             let mut g_g_rules = GLOBAL_RULES.lock().unwrap(); let global_rules = g_g_rules.deref_mut();
            
-            let g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
+        
             let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let mut msgs = g_msgs.deref_mut(); 
             let mut guard= USERS.lock().unwrap(); let users: &mut Vec<User> = guard.deref_mut();
-            let rule_name = g_rule.name.clone();
-            rules.push(g_rule);
-            if rules.len() > RULE_MAX {
-                let rule = rules.remove(0);
-                let mut system_message = Message{
-                    text: format!("{} has been replaced by {}", rule_name, rule.name.clone()),
-                    time: utils::unix_time(),
-                    message_type: MessageType::System,
-                    by: String::from("server"),
-
-                };
-                add_to_msg_history(&mut system_message,&mut msgs);
-                send_to_all_users(users,make_message_tung(&vec!(system_message)));
-
-                global_rules.push(rule);
-                
+            if users.len() > 0 {
+                let g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
+                let rule_name = g_rule.name.clone();
+                rules.push(g_rule);
+                if rules.len() > RULE_MAX {
+                    let rule = rules.remove(0);
+                    let mut system_message = Message{
+                        text: format!("{} has been replaced by {}", rule_name, rule.name.clone()),
+                        time: utils::unix_time(),
+                        message_type: MessageType::System,
+                        by: String::from("server"),
+    
+                    };
+                    add_to_msg_history(&mut system_message,&mut msgs);
+                    send_to_all_users(users,make_message_tung(&vec!(system_message)));
+    
+                    global_rules.push(rule);
+                    
+                }
             }
+         
             drop(g_rules); drop(g_g_rules); drop(g_msgs);
         
           
             send_to_all_users(users,current_rules_json());
+
             drop(guard);
+            
             write_msg_history();
             sleep(Duration::from_secs(RULE_TIME));
         }
