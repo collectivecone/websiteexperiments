@@ -120,7 +120,6 @@ pub fn read_all_inputs(global_users : &'static Mutex<Vec<User>>, websocket_sende
                         }
                         Err(e) => {
                         if e.to_string() == "Trying to work with closed connection" {
-                            println!("deleted user");
                             to_delete.push(i);
                         } 
                         break;

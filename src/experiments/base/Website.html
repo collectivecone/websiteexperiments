@@ -175,17 +175,24 @@
           }
         }
 
+        function send_message() {
+            string = document.getElementById('MessageInput').value;
+           // add_message(string)
+            socket.send(string)
+        }
+
     		function add_message(msg) {
          	text_area = document.getElementById("Messages")
         
           let span = document.createElement("span");
           if (msg[2] == 0) {
           	span.className = "message"
+            span.textContent = msg[0] + ":" + msg[1] + ":" + time_string(msg[3])
           } else {
           	span.className = "system_message"
+            span.textContent = msg[0] + ":" + time_string(msg[3])
           }
           
-          span.textContent = msg[0] + ":" + msg[1] + ":" + time_string(msg[3])
           text_area.prepend(span)
 
           children = text_area.children

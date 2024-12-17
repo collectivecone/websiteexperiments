@@ -28,12 +28,7 @@ pub fn reply_to_get(mut stream: TcpStream,linker: &str) {
     let contents = fs::read_to_string(linker).unwrap();
     let length = contents.len();
     
-  //  println!("{:?}",stream);
     let response =
     format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
-    //println!("{}",response);
     stream.write_all(response.as_bytes()).unwrap();
-   // println!("{:?}",stream);
-
-
 }

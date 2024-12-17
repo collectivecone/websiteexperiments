@@ -2,7 +2,7 @@ use std::{
     fs:: {
         File,
         OpenOptions
-    }, io::Write, net::TcpStream, ops::DerefMut, sync::{
+    }, io::{Read, Write}, net::TcpStream, ops::DerefMut, sync::{
         mpsc,
         Mutex,
     }, thread::{
@@ -65,7 +65,6 @@ fn write_msg_history() {
 
     for msg in &(*unsaved_msgs) {
         let msg = msg;
-        println!("{:?}",msg);
         let mut save = message_to_serde(msg).to_string();
         save.push('\n');
         message_list.push_str(save.as_str());
@@ -88,7 +87,8 @@ fn read_msg_history() {
     let mut file = file_o.unwrap();
 
     let mut data = String::new();
-    _= file.read_to_string(&mut data);
+
+    _=file.read_to_string(&mut data);
 
     let mut msgs_str = data.split("\n").collect::<Vec<&str>>();
     if msgs_str.len() > MAX_MSGS {
@@ -179,25 +179,27 @@ pub fn main() {
            
             let g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
             let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let mut msgs = g_msgs.deref_mut(); 
+            let mut guard= USERS.lock().unwrap(); let users: &mut Vec<User> = guard.deref_mut();
+            let rule_name = g_rule.name.clone();
             rules.push(g_rule);
             if rules.len() > RULE_MAX {
                 let rule = rules.remove(0);
-                let sysyem_message = Message{
-                    text: format!("{} has been replaced by {}", g_rule.name.clone(), rule.name.clone()),
+                let mut system_message = Message{
+                    text: format!("{} has been replaced by {}", rule_name, rule.name.clone()),
                     time: utils::unix_time(),
                     message_type: MessageType::System,
                     by: String::from("server"),
 
                 };
-                add_to_msg_history(&mut sysyem_message,&mut msgs);
-                send_to_all_users(users,make_message_tung(&vec!(msg)));
+                add_to_msg_history(&mut system_message,&mut msgs);
+                send_to_all_users(users,make_message_tung(&vec!(system_message)));
 
                 global_rules.push(rule);
                 
             }
             drop(g_rules); drop(g_g_rules); drop(g_msgs);
         
-            let mut guard= USERS.lock().unwrap(); let users: &mut Vec<User> = guard.deref_mut();
+          
             send_to_all_users(users,current_rules_json());
             drop(guard);
             write_msg_history();
