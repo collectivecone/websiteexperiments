@@ -190,13 +190,13 @@
           let span = document.createElement("span");
           if (msg[2] == 0) {
           	span.className = "message"
-            span.textContent = msg[0] + ":" + msg[1] 
+            span.textContent = msg[0] + ":" 
 
                         
 
             let datetime = document.createElement("span");
             datetime.className = "extra_message_info"
-            datetime.textContent = " " + time_string(msg[3])
+            datetime.textContent = msg[1] + " at " + time_string(msg[3])
             span.append(datetime);
 
 

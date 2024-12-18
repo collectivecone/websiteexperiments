@@ -10,19 +10,10 @@ use std::{
 };
 
 use crate::utils::{
-    self,
-    http::{
-        HttpTypes,
-        Request,
-        reply_to_get,
-    }, 
-    websocket::{
-        self,
-        User,
-        add_new_user,
-        get_user_by_id,
-        send_to_all_users,
-        send_to_user,
+    self, filter, http::{
+        reply_to_get, HttpTypes, Request
+    }, websocket::{
+        self, add_new_user, get_user_by_id, send_to_all_users, send_to_user, User
     }
 };
 
@@ -38,7 +29,7 @@ use rules::{
 };
 
 const RULE_TIME: u64 = 24;
-const RULE_MAX: usize = 2;
+const RULE_MAX: usize = 1;
 const MAX_MSGS: usize = 1000;
 static USERS: Mutex<Vec<User>> = Mutex::new(Vec::new());
 static RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
@@ -229,6 +220,8 @@ pub fn main() {
             for rule in rules {
                 msg = (rule.process)(msg,&user,&msgs)
             }
+
+            msg.text = filter::censore_message(msg.text);
             
             add_to_msg_history(&mut msg,&mut msgs);
             send_to_all_users(users,make_message_tung(&vec!(msg)) ) ;
