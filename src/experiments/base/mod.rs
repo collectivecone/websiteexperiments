@@ -217,6 +217,7 @@ pub fn main() {
 
             let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let mut msgs = g_msgs.deref_mut(); 
             let mut g_rules = RULES.lock().unwrap(); let rules: &mut Vec<Rule> = g_rules.deref_mut();
+            msg.text.truncate(300);
             for rule in rules {
                 msg = (rule.process)(msg,&user,&msgs)
             }
