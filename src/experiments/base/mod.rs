@@ -151,8 +151,8 @@ fn current_rules_json() -> tungstenite::Message {
         let rule_json = serde_json::json!([
              rule.name,
              rule.desc,
-             1,
-             1,
+             rule._starttime,
+             rule._endtime,
         ]);
         vec.push(rule_json);
     }
@@ -177,7 +177,8 @@ pub fn main() {
             let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let mut msgs = g_msgs.deref_mut(); 
             let mut guard= USERS.lock().unwrap(); let users: &mut Vec<User> = guard.deref_mut();
             if users.len() > 0 {
-                let g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
+                let mut g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
+                g_rule._starttime = utils::unix_time(); g_rule._endtime = utils::unix_time() + 1000 * (RULE_TIME * RULE_MAX as u64) ;
                 let rule_name = g_rule.name.clone();
                 rules.push(g_rule);
                 if rules.len() > RULE_MAX {

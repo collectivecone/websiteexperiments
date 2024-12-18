@@ -133,6 +133,7 @@
         window.onload = (event) => {
           connect_to_websockets()
           remake_restrictions()
+          setInterval(cooldown_on_restrictions, 20)
         };
 
         async function connect_to_websockets() {

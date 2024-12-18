@@ -26,6 +26,21 @@ pub struct Rule  {
     pub desc: String,
     pub weight: f32,
     pub process: fn(Message,&User,&Vec<Message>) -> Message,
+    pub _starttime: u64,
+    pub _endtime: u64,
+}
+
+impl Default for Rule {
+    fn default() -> Rule {
+        Rule {
+            name: String::from("Default name"),
+            desc: String::from("Default desc"),
+            weight: 1.0,
+            process: |msg,_,_| {return msg},
+            _starttime: 0,
+            _endtime: 0,
+        }
+    }
 }
 
 pub static GLOBAL_RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
@@ -113,7 +128,8 @@ pub fn initalise_rules() {
             let reversed_message = msg.text.chars().rev().collect::<String>();
             msg.text = reversed_message;
             return msg;
-        }   
+        }, 
+        ..Default::default()
     });
 
     rules.push(Rule{ 
@@ -131,7 +147,8 @@ pub fn initalise_rules() {
             }
             msg.text = string;
             return msg;
-        }   
+        }, 
+        ..Default::default()
     });
 
     rules.push(Rule{ 
@@ -147,7 +164,8 @@ pub fn initalise_rules() {
                 }
             }).collect();
             return msg;
-        }   
+        }, 
+        ..Default::default()
     });
 
     rules.push(Rule{ 
@@ -170,7 +188,8 @@ pub fn initalise_rules() {
                 msg.text = msg.text + " test pand";
                 return msg;
             }
-        }   
+        }, 
+        ..Default::default()
     });
 
 
@@ -200,7 +219,8 @@ pub fn initalise_rules() {
             msg.text = combine_section_vec_into_string(sects);
 
             return msg;
-        }   
+        }, 
+        ..Default::default()
     });
 
     
@@ -248,7 +268,8 @@ pub fn initalise_rules() {
 
             msg.text = combine_section_vec_into_string(sects);
             return msg;
-        }   
+        }, 
+        ..Default::default()
     });
 
     rules.push(Rule{ 
@@ -274,7 +295,8 @@ pub fn initalise_rules() {
 
             msg.text = combine_section_vec_into_string(sects);
             return msg;
-        }   
+        }, 
+        ..Default::default()
     });
 
     rules.push(Rule{ 
@@ -288,7 +310,8 @@ pub fn initalise_rules() {
                 msg.text = String::from("Elephant");
                 return msg;
             };
-        }   
+        }, 
+        ..Default::default()
     });
 
     rules.push(Rule{ 
@@ -314,7 +337,8 @@ pub fn initalise_rules() {
             }
             msg.text = combine_section_vec_into_string(sects);
             return msg;
-        }   
+        }, 
+        ..Default::default()
     });
 
     rules.push(Rule{ 
@@ -346,7 +370,8 @@ pub fn initalise_rules() {
             msg.text = combine_section_vec_into_string(sects);
 
             return msg;
-        }   
+        }, 
+        ..Default::default()
     });
 
 
@@ -384,7 +409,8 @@ pub fn initalise_rules() {
             msg.text = combine_section_vec_into_string(sects);
 
             return msg;
-        }   
+        }, 
+        ..Default::default()
     });
 
     rules.push(Rule{ 
@@ -412,7 +438,8 @@ pub fn initalise_rules() {
 
             msg.text = combine_section_vec_into_string(sects);
             return msg;
-        }   
+        }, 
+        ..Default::default()
     });
 
     rules.push(Rule{ 
@@ -455,7 +482,8 @@ pub fn initalise_rules() {
 
 
             return msg;
-        }   
+        }, 
+        ..Default::default()
     });
 
 
@@ -488,6 +516,7 @@ pub fn initalise_rules() {
             msg.text = chars.into_iter().collect();
 
             return msg;
-        }   
+        }, 
+        ..Default::default()
     });
 }
