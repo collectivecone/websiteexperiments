@@ -319,7 +319,7 @@ pub fn initalise_rules() {
         desc: String::from("You must only use the top 1000 most common english words or it is replaced by one that is"),
         weight: 0.2,
         process: |mut msg, _, _|  {
-            let word_hash: HashSet<String> = filter::get_most_common_words();
+            let word_hash: &HashSet<String> = filter::get_most_common_words();
             let word_list: Vec<String> = word_hash.iter().map(|str| str.clone()).collect();
 
             let mut sects = split_into_word_vec(&msg.text);
