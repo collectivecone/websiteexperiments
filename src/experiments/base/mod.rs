@@ -71,7 +71,6 @@ fn read_msg_history() {
         return;
     }
     let mut file = file_o.unwrap();
-
     let mut data = String::new();
 
     _=file.read_to_string(&mut data);
