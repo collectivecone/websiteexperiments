@@ -231,7 +231,7 @@ pub fn initalise_rules() {
         process: |mut msg: Message, _, msg_history|  {
             let mut word_list: Vec<String> = Vec::new();
             word_list.push(String::from("elephant"));
-            for i in 0..(30.min(msg_history.len())) {
+            for i in ((msg_history.len() - 30).max(0))..msg_history.len() {
                 let msg = msg_history.get(i).unwrap();
                 let sects = split_into_word_vec(&msg.text);
                 for sect in sects {
@@ -326,7 +326,7 @@ pub fn initalise_rules() {
             for mut sect in &mut sects {
                 match &mut sect {
                     Word(string) => {
-                        if word_hash.contains(&string.to_lowercase()) {
+                        if !word_hash.contains(&string.to_lowercase()) {
                             string.clear();
                             let random_word = &word_list[fastrand::usize(0..word_list.len())];
                             string.push_str(random_word.as_str());
@@ -448,8 +448,9 @@ pub fn initalise_rules() {
         weight: 1.0,
         process: |mut msg, _, msg_history|  {
             let mut word_list: Vec<String> = Vec::new();
-            for i in 0..(30.min(msg_history.len()) ) {
+            for i in ((msg_history.len() - 10).max(0))..msg_history.len(){
                 let msg = msg_history.get(i).unwrap();
+                println!("{:?}",msg);
                 let sects = split_into_word_vec(&msg.text);
                 for sect in sects {
                     if let Word(string) = sect {

@@ -103,11 +103,11 @@
         white-space: normal;
         word-wrap: break-word;
        }.system_message {
-       		color: #DDDDDD'
- 
+       		color: #DDDDDD;
+       }.extra_message_info {
+          color: #EEEEEE;
+          font-size: 50%;
        }
-    
-    
     </style>
 
   </head>
@@ -178,8 +178,10 @@
 
         function send_message() {
             string = document.getElementById('MessageInput').value;
-           // add_message(string)
-            socket.send(string)
+            document.getElementById('MessageInput').value = "";
+            if (string != "") {
+              socket.send(string)
+            }
         }
 
     		function add_message(msg) {
@@ -188,7 +190,17 @@
           let span = document.createElement("span");
           if (msg[2] == 0) {
           	span.className = "message"
-            span.textContent = msg[0] + ":" + msg[1] + ":" + time_string(msg[3])
+            span.textContent = msg[0] + ":" + msg[1] 
+
+                        
+
+            let datetime = document.createElement("span");
+            datetime.className = "extra_message_info"
+            datetime.textContent = " " + time_string(msg[3])
+            span.append(datetime);
+
+
+
           } else {
           	span.className = "system_message"
             span.textContent = msg[0] + ":" + time_string(msg[3])
