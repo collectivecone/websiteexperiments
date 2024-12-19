@@ -5,8 +5,8 @@ use std::{
     ops::DerefMut, sync::Mutex,
     collections::HashSet,
 };
-use crate::utils::websocket::User;
 use fastrand;
+use self::super::super::base::User;
 
 #[derive(Clone,Copy,Debug)]
 pub enum MessageType {

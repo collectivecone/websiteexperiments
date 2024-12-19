@@ -4,6 +4,11 @@
     <title> Social Experiment:1</title>
     <link rel="stylesheet" href="style.css">
     <style> 
+    :root {
+      --alertsize: 5vh;
+    }
+    
+    
       body {
         background: #DDEEFF;
         margin: 0;
@@ -16,8 +21,8 @@
       div.box {
         border-style: solid;
         margin-top: 1vh;
-        margin-left: 10vh;
-        margin-right: 10vh;
+        margin-left: 4vw;
+        margin-right: 4vw;
         margin-bottom: 10vh;
         padding: 0px;
         height: calc(100vh - 75px);
@@ -47,43 +52,42 @@
       div.topler {
         position:absolute;
         pointer-events: none;
-        width: calc(100% - 20vh - 6px);
+        width: calc(100% - 8vw - 6px);
         height: 100%;
       }
       div.alert {
-        width:100%;
-        height: 8vh;
+        display: grid;
+        height: var(--alertsize);
         background: #DDDDDD;
         border-bottom-style: dashed;
         border-width: 2px;
+      
 
       }.alert_time_left {
-        position:absolute;
+        position:absolute ;
         opacity: 100%;
-        height: calc(8vh);
+        height: var(--alertsize);
         width: 55%; 
         background: #AEAEAE;
       }
 
       div.bottomtext {
-        width:100%;
-        height: 50%;
-        font-size: 100%;
+     
+        font-size: calc(var(--alertsize)/2.8);
         text-align: center;
         position: relative
       }
       div.toptext {
-        width:100%;
-        height: 60%;
-        font-size: 145%;
+  
+        font-size: calc(var(--alertsize)/2);
         text-align: center;
         position: relative;
       }
       input[type=text] {
          color: #000000;
          height: calc(5% - 5px);
-         font-size: 100%;
-         width: calc(100% - 5px);
+         font-size: 2.5vh;
+         width: calc(100% - 4px);
          transform: translate(-3px, 0);
          border: solid;
          outline: none;
@@ -225,7 +229,7 @@
               
               let alert_time_left = document.createElement("div");
               alert_time_left.id = "alert_" + i
-              alert_time_left.className  = "alert alert_time_left"
+              alert_time_left.className  = "alert_time_left"
               
               let toptext = document.createElement("div");
               toptext.className  = "toptext"

@@ -13,7 +13,7 @@ use crate::utils::{
     self, filter, http::{
         reply_to_get, HttpTypes, Request
     }, websocket::{
-        self, add_new_user, get_user_by_id, send_to_all_users, send_to_user, User
+        self, add_new_user, get_user_by_id, send_to_all_users, send_to_user, NetworkUser, NetworkBased
     }
 };
 
@@ -35,6 +35,20 @@ static USERS: Mutex<Vec<User>> = Mutex::new(Vec::new());
 static RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 static MSGS: Mutex<Vec<Message>> = Mutex::new(Vec::new());
 static UNSAVED_MSG: Mutex<Vec<Message>> = Mutex::new(Vec::new());
+
+struct User {
+    networking: NetworkUser,
+    last_sent_message: f32,
+}
+
+impl NetworkBased for User {
+    fn network_mut(&mut self) -> &mut NetworkUser  {
+        return &mut self.networking;
+    }
+    fn network(&self) -> &NetworkUser  {
+        return &self.networking;
+    }
+}
 
 
 fn write_msg_history() {
@@ -205,7 +219,7 @@ pub fn main() {
             let mut guard= USERS.lock().unwrap();
             let mut users: &mut Vec<User> = guard.deref_mut();
             let user: &mut User = get_user_by_id(&mut users,websocket_data.user_id).unwrap();
-            let ip = user.true_ip.clone();
+            let ip = user.network().true_ip.clone();
 
             let mut msg = Message{
                 text: string,

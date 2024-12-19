@@ -9,7 +9,7 @@ pub enum Section {
 }
 use Section::{Word,SpaceOrPunc};
 
-static SWEARS: LazyLock<HashSet<String>> = LazyLock::new(|| {
+static SWEARS: LazyLock<Vec<String>> = LazyLock::new(|| {
     let contents = fs::read_to_string("src/utils/filter/bannedwords.txt")
     .expect("Should have been able to read the file");
 
@@ -108,14 +108,17 @@ pub fn split_into_word_vec(text: &String) ->  Vec<Section> {
 }
 
 pub fn censore_message(mut msg: String) -> String {
-    let word_hash = &*SWEARS;
+    let swear_vec = &*SWEARS;
   
     let mut sects = split_into_word_vec(&msg);
     for mut sect in &mut sects {
         match &mut sect {
             Word(string) => {
-                if word_hash.contains(&string.to_lowercase())  {
-                    swear_censore(string);
+                for swear in swear_vec {
+                    if string.contains(swear) {
+                        swear_censore(string);
+                        break
+                    }
                 }
             },
             _ => {},
