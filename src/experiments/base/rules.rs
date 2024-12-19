@@ -185,7 +185,7 @@ pub fn initalise_rules() {
             if rev_chars.collect::<String>().to_lowercase() == chars.collect::<String>().to_lowercase() {
                 return msg;
             } else {
-                msg.text = msg.text + " test pand";
+            
                 return msg;
             }
         }, 
@@ -516,6 +516,16 @@ pub fn initalise_rules() {
 
             msg.text = chars.into_iter().collect();
 
+            return msg;
+        }, 
+        ..Default::default()
+    });
+
+    rules.push(Rule{ 
+        name: String::from("No repeat letters"), 
+        desc: String::from("Random letters get swap with ones near themselves"),
+        weight: 1.0,
+        process: |mut msg, _, _|  {
             return msg;
         }, 
         ..Default::default()
