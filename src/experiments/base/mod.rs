@@ -193,32 +193,47 @@ pub fn main() {
            
             let mut guard= USERS.lock().unwrap(); let users: &mut Vec<User> = guard.deref_mut();
             let mut rules_count = rules.len();
+            println!("{} {}", users.len() > 0, rules_count <= RULE_MAX);
             if users.len() > 0 || rules_count <= RULE_MAX  {
                 let mut g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
                 g_rule._starttime = utils::unix_time(); g_rule._endtime = utils::unix_time() + 1000 * (RULE_TIME * RULE_MAX as u64) ;
-                let rule_name = g_rule.name.clone();
+                let rule_name_new = g_rule.name.clone();
                 rules.push(g_rule);
                 rules_count += 1;
+
+             
+               
                 if rules_count > RULE_MAX {
                     let rule = rules.remove(0);
+                    let rule_name_old = rule.name.clone();
+                    global_rules.push(rule);
+                    drop(g_rules); drop(g_g_rules);
+
+                    send_to_all_users(users,current_rules_json());
+                    drop(guard);
+
+                    
                     sent_global_messages(Message{
-                        text: format!("{} has been replaced by {}", rule.name.clone(),rule_name),
+                        text: format!("{} has been replaced by {}", rule_name_old,rule_name_new),
                         time: utils::unix_time(),
                         message_type: MessageType::System,
                         by: String::from(""),
     
                     });
-                    global_rules.push(rule);
+                    
                 } else {
+                    drop(g_rules); drop(g_g_rules);
 
+                    send_to_all_users(users,current_rules_json());
+                    drop(guard);
                 }
             }
          
-            drop(g_rules); drop(g_g_rules);
-            send_to_all_users(users,current_rules_json());
-            drop(guard);
+           
+           
             
             write_msg_history();
+            println!("{}",rules_count >= RULE_MAX);
             if rules_count >= RULE_MAX {
                 sleep(Duration::from_secs(RULE_TIME));
             }
