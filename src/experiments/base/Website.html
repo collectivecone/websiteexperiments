@@ -103,7 +103,7 @@
         white-space: normal;
         word-wrap: break-word;
        }.system_message {
-       		color: #DDDDDD;
+       		color: #000000;
        }.extra_message_info {
           color: #EEEEEE;
           font-size: 50%;
@@ -122,7 +122,7 @@
         
         </div>
        <div id="Messages" class="messagebox"></div>
-       <input type="text" id="MessageInput" class="messageinput" placeholder="enter text here for message">
+       <input type="text" id="MessageInput" class="messageinput" maxlength="300" placeholder="enter text here for message">
       
     </div>
     <script> 
@@ -190,13 +190,13 @@
           let span = document.createElement("span");
           if (msg[2] == 0) {
           	span.className = "message"
-            span.textContent = msg[0] + ":" + msg[1] 
+            span.textContent = msg[0] + ":" 
 
                         
 
             let datetime = document.createElement("span");
             datetime.className = "extra_message_info"
-            datetime.textContent = " " + time_string(msg[3])
+            datetime.textContent = msg[1] + " at " + time_string(msg[3])
             span.append(datetime);
 
 
@@ -225,7 +225,7 @@
               
               let alert_time_left = document.createElement("div");
               alert_time_left.id = "alert_" + i
-              alert_time_left.className  = "alert_time_left"
+              alert_time_left.className  = "alert alert_time_left"
               
               let toptext = document.createElement("div");
               toptext.className  = "toptext"

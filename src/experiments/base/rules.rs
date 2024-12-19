@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(unused_imports)]
 
 use std::{
     ops::DerefMut, sync::Mutex,
@@ -45,75 +46,18 @@ impl Default for Rule {
 
 pub static GLOBAL_RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 
-#[derive(Clone,Debug)]
-enum Section {
-    Word(String),
-    SpaceOrPunc(String),
-}
-use Section::{Word,SpaceOrPunc};
-use crate::utils::filter;
 
-fn censore_word(msg: &mut String) {
-    let original_len = msg.len();
-    msg.clear();
-    msg.push_str("*".repeat(original_len).as_str() );
-}
 
-fn combine_section_vec_into_string(msg_section: Vec<Section>) -> String {
-    let mut msg = String::new();
-    for sect in msg_section {
-        match sect {
-            Word(string) => {
-                msg.push_str(string.as_str());
-            }
-            SpaceOrPunc(string) => {
-                msg.push_str(string.as_str());
-            }
-        }
-    }
+use crate::utils::filter::{
+    self,
+    combine_section_vec_into_string,
+    split_into_word_vec,
+    stand_censore,
 
-    return msg;
-}
 
-fn split_into_word_vec(text: &String) ->  Vec<Section> {
-    let mut vec: Vec<Section> = Vec::new();
+};
+use filter::Section::{Word,SpaceOrPunc,self};
 
-    let punc = r#" .,<>';:[]{}#~/!"£$%^&*()"#;
-    let mut current_section: Section = Word(String::new());
-
-    for char in text.chars() {
-        if let Some(_)  = punc.find(char) {
-            match &mut current_section {
-                Word(_string) => {
-                    vec.push(current_section);
-                    current_section =  SpaceOrPunc(String::from(char));
-                }
-                SpaceOrPunc(string) => {
-                    string.push(char);
-                }
-            }
-        } else {
-            match &mut current_section {
-                Word(string) => {
-                    string.push(char);
-                }
-                SpaceOrPunc(_string) => {
-                    vec.push(current_section);
-                    current_section = Word(String::from(char));
-                }
-            }
-        }
-    }
-    vec.push(current_section);
-
-    let first = vec.get(0).unwrap();
-    if let Section::Word(string) = first {
-        if string.len() == 0 {
-            vec.remove(0);
-        }
-    }
-    return vec;
-}
 
 pub fn initalise_rules() {
     let mut guard  = GLOBAL_RULES.lock().unwrap();
@@ -212,7 +156,7 @@ pub fn initalise_rules() {
                 if let Section::Word(string) = sect {
                     i += 1;
                     if i % 2 == 1 {
-                        censore_word(string);
+                        stand_censore(string);
                     }
                 }
             }
@@ -288,7 +232,7 @@ pub fn initalise_rules() {
                         }
                     }
                     if count != 1 {
-                        censore_word(string);
+                        stand_censore(string);
                     }
                 }
             }
@@ -396,7 +340,7 @@ pub fn initalise_rules() {
                                 continue
                             }
                         }
-                        censore_word(string);
+                        stand_censore(string);
                     },
                     _ => {},
                 }
@@ -472,7 +416,7 @@ pub fn initalise_rules() {
                             }
                         }
                         if exists {
-                            censore_word(string);
+                            stand_censore(string);
                         }
                     },
                     _ => {},
