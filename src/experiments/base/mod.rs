@@ -1,5 +1,5 @@
 use std::{
-    default, fs:: 
+    fs:: 
         OpenOptions, io::{Read, Write}, net::TcpStream, ops::DerefMut, sync::{
         mpsc,
         Mutex,
@@ -193,7 +193,6 @@ pub fn main() {
            
             let mut guard= USERS.lock().unwrap(); let users: &mut Vec<User> = guard.deref_mut();
             let mut rules_count = rules.len();
-            println!("{} {}", users.len() > 0, rules_count <= RULE_MAX);
             if users.len() > 0 || rules_count <= RULE_MAX  {
                 let mut g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
                 g_rule._starttime = utils::unix_time(); g_rule._endtime = utils::unix_time() + 1000 * (RULE_TIME * RULE_MAX as u64) ;
@@ -233,7 +232,6 @@ pub fn main() {
            
             
             write_msg_history();
-            println!("{}",rules_count >= RULE_MAX);
             if rules_count >= RULE_MAX {
                 sleep(Duration::from_secs(RULE_TIME));
             }

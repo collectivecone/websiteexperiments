@@ -5,6 +5,8 @@ use std::{
     io::Write,
 };
 
+use tungstenite::http::header;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum HttpTypes {
    Post,
@@ -25,10 +27,23 @@ pub struct Request {
 
 pub fn reply_to_get(mut stream: TcpStream,linker: &str) {
     let status_line = "HTTP/1.1 200 OK";
-    let contents = fs::read_to_string(linker).unwrap();
+    let mut contents = fs::read(linker).unwrap();
     let length = contents.len();
+  
+
+    let data_type = linker.split(".").into_iter().last().unwrap() ;
+    println!("{}",data_type);
+
+    let header_string: String;
+    if data_type == "png" {
+        header_string = format!("{status_line}\r\nContent-Length: {length}\r\nContent-Type: image/png\r\n\r\n");
+    } else { // data_type == "html"
+         header_string = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n");
+    }
+
     
-    let response =
-    format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
-    stream.write_all(response.as_bytes()).unwrap();
+    let mut header_bytes: Vec<u8> = header_string.bytes().collect();
+
+    header_bytes.append(&mut contents);
+    stream.write_all(&*header_bytes).unwrap();
 }

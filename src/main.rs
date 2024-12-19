@@ -75,10 +75,16 @@ fn website_handling(stream: TcpStream, request: Request) {
 
     let link = request.request.request.clone();
 
-    if link == "/style.css" {
+    println!("{}",link);
+    println!("{}",link == r"/favicon.ico");
+    println!("{}",link == r"/");
+    println!("{}",link == r"/style.css");
+
+    if link.as_str() == "/style.css" {
         reply_to_get(stream, "src/experiments/style.css");
-    } else if link == "/favicon.ico" {
-        reply_to_get(stream, "src/experiments/favicon.ico");
+    } else if link.as_str().trim() == "/favicon.png".trim() {
+
+        reply_to_get(stream, "src/experiments/favicon.png");
     } else if link == "/" {
         crate::experiments::base::http_request(stream,request);
     };
