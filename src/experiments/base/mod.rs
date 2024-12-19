@@ -36,7 +36,7 @@ static RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 static MSGS: Mutex<Vec<Message>> = Mutex::new(Vec::new());
 static UNSAVED_MSG: Mutex<Vec<Message>> = Mutex::new(Vec::new());
 
-struct User {
+pub struct User {
     networking: NetworkUser,
     last_sent_message: f32,
 }
@@ -251,13 +251,19 @@ pub fn http_request(stream: TcpStream, request: Request) {
 }
 
 pub fn websocket_request(stream: TcpStream, request: Request) {
-    let mut guard: std::sync::MutexGuard<'_, Vec<User>> = USERS.lock().unwrap();
-    let user_op: Option<&mut User> = add_new_user(stream, request.headers, &mut guard);
+    let mut guard_user: std::sync::MutexGuard<'_, Vec<User>> = USERS.lock().unwrap();
+    let network_user_op: Option<NetworkUser> = add_new_user(stream, request.headers, &mut guard_user);
 
-    if let Some(user) = user_op {
-        send_to_user(user, current_rules_json());
+    if let Some(network_user) = network_user_op {
+        let mut user = User{
+            networking: network_user,
+            last_sent_message: 0.0,
+        };
+        send_to_user(&mut user, current_rules_json());
         let mut guard = MSGS.lock().unwrap();
         let msgs = guard.deref_mut(); 
-        send_to_user(user, make_message_tung(msgs));
+        send_to_user(&mut user, make_message_tung(msgs));
+
+        guard_user.push(user);
     }
 }

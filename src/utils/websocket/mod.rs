@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap, net::TcpStream, ops::{DerefMut, IndexMut}, sync::{
+    collections::HashMap, net::TcpStream, ops::DerefMut, sync::{
         mpsc::Sender, Mutex, MutexGuard
     }, thread::{sleep,spawn}, time::Duration
 };
@@ -23,11 +23,11 @@ pub struct NetworkUser {
     pub id: u64,
 }
 
+
 pub trait NetworkBased {
     fn network_mut(&mut self) -> &mut NetworkUser;
     fn network(&self) -> &NetworkUser;
 }
-
 
  
 fn get_ip(headers: &HashMap<String,String>, stream : &TcpStream) -> Option<String> {
@@ -53,10 +53,10 @@ fn is_multi_connecting(user_vec: &Vec<impl NetworkBased>, ip_string: &String) ->
     return false
 }
 
-pub fn add_new_user<'a>(stream: TcpStream,headers: HashMap<String,String>,guard: &'a mut MutexGuard<Vec<User>>) -> Option<&'a mut NetworkBased> {
-    let user_vec = guard.deref_mut();
+pub fn add_new_user<'a>(stream: TcpStream,headers: HashMap<String,String>,guard: &'a mut MutexGuard<Vec<impl NetworkBased>>) -> Option<NetworkUser> {
 
     if let Some(ip_string) = get_ip(&headers,&stream) {
+        let user_vec = (*guard).deref_mut() ;
         if !is_multi_connecting(&user_vec,&ip_string) {
             _ = stream.set_nonblocking(true);
             let websocket = accept_with_config(stream,Some(WebSocketConfig{
@@ -73,9 +73,7 @@ pub fn add_new_user<'a>(stream: TcpStream,headers: HashMap<String,String>,guard:
                 true_ip: ip_string,
                 id: fastrand::u64(..),
             };
-            user_vec.push(user);
-            let user = user_vec.index_mut(user_vec.len() - 1);
-
+            
             return Some(user);
         }
     };
