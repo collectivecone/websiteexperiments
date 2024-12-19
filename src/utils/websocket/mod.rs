@@ -16,7 +16,6 @@ pub struct WebsocketData {
     pub msg: tungstenite::Message,
     pub user_id: u64,
 }
-#[derive(Debug)]
 pub struct NetworkUser {
     pub websocket: WebSocket<TcpStream>,
     pub true_ip: String,

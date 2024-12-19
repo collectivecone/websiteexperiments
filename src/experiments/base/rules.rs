@@ -185,10 +185,10 @@ pub fn initalise_rules() {
                     }
                 }
             }
-            println!("{:?}",word_list);
+
 
             let mut sects = split_into_word_vec(&msg.text);
-            println!("{:?}",sects);
+ 
             for sect in &mut sects {
                 match sect {
                     Word(string) => {
@@ -208,8 +208,7 @@ pub fn initalise_rules() {
                     _ => {},
                 }
             }
-            println!("{:?}",sects);
-
+           
             msg.text = combine_section_vec_into_string(sects);
             return msg;
         }, 
@@ -394,7 +393,7 @@ pub fn initalise_rules() {
             let mut word_list: Vec<String> = Vec::new();
             for i in ((msg_history.len() - 10).max(0))..msg_history.len(){
                 let msg = msg_history.get(i).unwrap();
-                println!("{:?}",msg);
+     
                 let sects = split_into_word_vec(&msg.text);
                 for sect in sects {
                     if let Word(string) = sect {

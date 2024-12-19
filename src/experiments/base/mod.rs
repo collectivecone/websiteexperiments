@@ -1,11 +1,9 @@
 use std::{
-    fs:: 
-        OpenOptions
-    , io::{Read, Write}, net::TcpStream, ops::DerefMut, sync::{
+    default, fs:: 
+        OpenOptions, io::{Read, Write}, net::TcpStream, ops::DerefMut, sync::{
         mpsc,
         Mutex,
-    }, thread::{sleep,spawn},
-    time:: Duration
+    }, thread::{sleep,spawn}, time:: Duration
     
 };
 
@@ -28,17 +26,17 @@ use rules::{
     GLOBAL_RULES,
 };
 
-const RULE_TIME: u64 = 24;
+const RULE_TIME: u64 = 60;
 const RULE_MAX: usize = 1;
 const MAX_MSGS: usize = 1000;
+const MESSAGE_LIMIT: u64 = 4000;
 static USERS: Mutex<Vec<User>> = Mutex::new(Vec::new());
 static RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 static MSGS: Mutex<Vec<Message>> = Mutex::new(Vec::new());
 static UNSAVED_MSG: Mutex<Vec<Message>> = Mutex::new(Vec::new());
-
 pub struct User {
     networking: NetworkUser,
-    last_sent_message: f32,
+    anti_spam_message_timer: u64,
 }
 
 impl NetworkBased for User {
@@ -165,6 +163,14 @@ fn current_rules_json() -> tungstenite::Message {
     return tungstenite::Message::text(final_string);
 }
 
+fn sent_global_messages(mut msg : Message) {
+    let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let mut msgs = g_msgs.deref_mut(); 
+    let mut g_users= USERS.lock().unwrap(); let users: &mut Vec<User> = g_users.deref_mut();
+
+    add_to_msg_history(&mut msg,&mut msgs);
+    send_to_all_users(users,make_message_tung(&vec!(msg)));
+}
+
 pub fn main() {
     let (websocket_sender, websocket_receiver) = mpsc::channel();
     websocket::read_all_inputs(&USERS,websocket_sender);
@@ -172,45 +178,51 @@ pub fn main() {
     read_msg_history();
     rules::initalise_rules();
     spawn(|| {
+
+        sent_global_messages(Message{
+            text: format!("Server (re)started!"),
+            time: utils::unix_time(),
+            message_type: MessageType::System,
+            by: String::from(""),
+        });
+
         loop {
     
             let mut g_rules = RULES.lock().unwrap(); let rules: &mut Vec<Rule> = g_rules.deref_mut();
             let mut g_g_rules = GLOBAL_RULES.lock().unwrap(); let global_rules = g_g_rules.deref_mut();
            
-        
-            let mut g_msgs: std::sync::MutexGuard<'_, Vec<Message>> = MSGS.lock().unwrap(); let mut msgs = g_msgs.deref_mut(); 
             let mut guard= USERS.lock().unwrap(); let users: &mut Vec<User> = guard.deref_mut();
-            if users.len() > 0 {
+            let mut rules_count = rules.len();
+            if users.len() > 0 || rules_count <= RULE_MAX  {
                 let mut g_rule = global_rules.remove(fastrand::usize(..global_rules.len()));
                 g_rule._starttime = utils::unix_time(); g_rule._endtime = utils::unix_time() + 1000 * (RULE_TIME * RULE_MAX as u64) ;
                 let rule_name = g_rule.name.clone();
                 rules.push(g_rule);
-                if rules.len() > RULE_MAX {
+                rules_count += 1;
+                if rules_count > RULE_MAX {
                     let rule = rules.remove(0);
-                    let mut system_message = Message{
-                        text: format!("{} has been replaced by {}", rule_name, rule.name.clone()),
+                    sent_global_messages(Message{
+                        text: format!("{} has been replaced by {}", rule.name.clone(),rule_name),
                         time: utils::unix_time(),
                         message_type: MessageType::System,
-                        by: String::from("server"),
+                        by: String::from(""),
     
-                    };
-                    add_to_msg_history(&mut system_message,&mut msgs);
-                    send_to_all_users(users,make_message_tung(&vec!(system_message)));
-    
+                    });
                     global_rules.push(rule);
-                    
+                } else {
+
                 }
             }
          
-            drop(g_rules); drop(g_g_rules); drop(g_msgs);
-        
-          
+            drop(g_rules); drop(g_g_rules);
             send_to_all_users(users,current_rules_json());
-
             drop(guard);
             
             write_msg_history();
-            sleep(Duration::from_secs(RULE_TIME));
+            if rules_count >= RULE_MAX {
+                sleep(Duration::from_secs(RULE_TIME));
+            }
+            
         }
     });
 
@@ -220,6 +232,17 @@ pub fn main() {
             let mut users: &mut Vec<User> = guard.deref_mut();
             let user: &mut User = get_user_by_id(&mut users,websocket_data.user_id).unwrap();
             let ip = user.network().true_ip.clone();
+
+            if user.anti_spam_message_timer > utils::unix_time() + MESSAGE_LIMIT {
+                continue;
+            } else {
+                if  user.anti_spam_message_timer > utils::unix_time() {
+                    user.anti_spam_message_timer += MESSAGE_LIMIT
+                } else {
+                    user.anti_spam_message_timer = utils::unix_time() + MESSAGE_LIMIT;
+                }
+                
+            }
 
             let mut msg = Message{
                 text: string,
@@ -257,7 +280,7 @@ pub fn websocket_request(stream: TcpStream, request: Request) {
     if let Some(network_user) = network_user_op {
         let mut user = User{
             networking: network_user,
-            last_sent_message: 0.0,
+            anti_spam_message_timer: 0,
         };
         send_to_user(&mut user, current_rules_json());
         let mut guard = MSGS.lock().unwrap();
