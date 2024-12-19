@@ -85,7 +85,7 @@ fn read_msg_history() {
 
     for msg in msgs_str {
         let mut a = String::from("");
-        a.push_str(msg);
+        a.push_str(msg.trim());
 
         let json: Result<serde_json::Value, Error> = serde_json::from_str(msg);
         if let Ok(okayness) = json {

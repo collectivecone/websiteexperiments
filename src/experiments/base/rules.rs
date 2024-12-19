@@ -465,6 +465,7 @@ pub fn initalise_rules() {
         ..Default::default()
     });
 
+    /* 
     rules.push(Rule{ 
         name: String::from("No repeat letters"), 
         desc: String::from("Random letters get swap with ones near themselves"),
@@ -473,5 +474,5 @@ pub fn initalise_rules() {
             return msg;
         }, 
         ..Default::default()
-    });
+    }); */
 }
