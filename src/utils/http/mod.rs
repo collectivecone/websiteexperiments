@@ -5,6 +5,8 @@ use std::{
     io::Write,
 };
 
+use tungstenite::http::header;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum HttpTypes {
    Post,
@@ -39,6 +41,7 @@ pub fn reply_to_get(mut stream: TcpStream,linker: &str) {
     }
 
     
+
     let mut header_bytes: Vec<u8> = header_string.bytes().collect();
 
     header_bytes.append(&mut contents);

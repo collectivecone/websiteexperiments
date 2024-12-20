@@ -39,13 +39,31 @@ fn startup_experiments() {
 fn perm_http_receiver() {
     let addrs = [
         SocketAddr::from(([0, 0, 0, 0], 80)),
-        SocketAddr::from(([127, 0, 0, 1], 80)),
+        SocketAddr::from(([0, 0, 0, 0], 8000)),
+        SocketAddr::from(([0, 0, 0, 0], 8080)),
         SocketAddr::from(([127, 0, 0, 1], 8000)),
+        SocketAddr::from(([127, 0, 0, 1], 8080)),
     ];
     let listener = TcpListener::bind(&addrs[..]).unwrap();
     println!("Running server at {}", listener.local_addr().unwrap());
+    println!("Connecting through ip rather than cloudflare/an url is buggy and requires refreshing on chrome for whatever reason but does function (if anyone figures that out, do a pull request on the git)");
     if let net::IpAddr::V4(a) =  listener.local_addr().unwrap().ip() {
-        if !a.is_unspecified() {println!("try running server with admin permissions to connect to internet");}
+        if listener.local_addr().unwrap().port() != 80  {
+           
+            if !a.is_unspecified() {
+                println!("Server is only running locally");
+                println!("Try running server with admin permissions (or any permissions you can give) attempt connect to internet");
+                println!("Typing {} into the browser will allow you to see what the website would look like but nobody else is able to connect", listener.local_addr().unwrap());
+                println!("Perhaps try using sudo if your in linux or running as administrator in windows");
+            } else {
+                println!("The program has privillages to connect to the internet but is unable to connect to port 80 which is the standard for http and websites in general");
+                println!("Perhaps try using sudo if your in linux or running as administrator in windows");
+                println!("Anyone is the internet is able to connect but they must put :{} after the url or ip address in order to connect", listener.local_addr().unwrap().port());
+                println!("There are ways in either windows or linux to map port 80 to ones the program can access");
+                println!("Perhaps change your computer's settings so non privillaged users can access ports before 1024");
+                println!("linux:https://superuser.com/questions/710253/allow-non-root-process-to-bind-to-port-80-and-443/892391#892391")
+            }
+        }
     };
 
     for stream in listener.incoming() { 
@@ -82,7 +100,7 @@ fn website_handling(stream: TcpStream, request: Request) {
         reply_to_get(stream, "src/experiments/favicon.png");
     } else if link == "/restrictions" {
         crate::experiments::restrictions::http_request(stream,request);
-    } else if link == "/" {
+    } else if link == "/" || link ==  "/base" {
         crate::experiments::base::http_request(stream,request);
     };
    // if link == "/" {
