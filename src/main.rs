@@ -27,7 +27,28 @@ pub mod settings{
     }
 }
 
+fn reverse() {
+    let str = "hdee";
+    let chars: Vec<char> = str.chars().collect();
+    let rev: Vec<char> = str.chars().rev() .collect();
+
+    let mut pali_chars: Vec<char> = Vec::new();
+    let len = chars.len();
+    for (i,char) in chars.iter().enumerate() {
+        let j: usize = len - 1 - i;
+        if i > j {
+            pali_chars.push(rev[i]);
+           
+        } else {
+            pali_chars.push(*char);;
+        }
+    }
+
+    let str = pali_chars.iter().collect::<String>();
+}
+
 fn main() {
+    reverse();
     startup_experiments();
     perm_http_receiver();
 }

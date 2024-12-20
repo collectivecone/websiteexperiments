@@ -101,6 +101,7 @@ pub fn initalise_rules() {
         ..Default::default()
     });
 
+    /*
     rules.push(Rule{ 
         name: String::from("Palindrome"), 
         desc: String::from("Sentences are forced to be palindromic (same backwards and forwards ignoring punctation)"),
@@ -115,7 +116,27 @@ pub fn initalise_rules() {
                 };
             });
             let rev_chars = chars.clone().rev();
-            if rev_chars.collect::<String>().to_lowercase() == chars.collect::<String>().to_lowercase() {
+            if rev_chars.clone().collect::<String>().to_lowercase() == chars.clone().collect::<String>().to_lowercase() {
+                let mut pali_chars: Vec<char> = Vec::new();
+                let a: Vec<char> = chars.clone().collect();
+                let rev: Vec<char> = rev_chars.collect();
+                let len = a.len();
+                for (i,char) in chars.enumerate() {
+               
+                    let j: usize = len - 1 - i;
+                    if i > j {
+                        pali_chars.push(rev[i]);
+                       
+                    } else {
+                        pali_chars.push(char);
+                    }
+                }
+                let str = pali_chars.iter().collect::<String>();
+                let i = 0;
+
+
+                println!("{}", str);
+
                 return msg;
             } else {
             
@@ -123,7 +144,7 @@ pub fn initalise_rules() {
             }
         }, 
         ..Default::default()
-    });
+    }); */
 
 
     rules.push(Rule{ 
