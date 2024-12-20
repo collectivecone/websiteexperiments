@@ -164,7 +164,7 @@ pub fn initalise_rules() {
         process: |mut msg: Message, _, msg_history|  {
             let mut word_list: Vec<String> = Vec::new();
             word_list.push(String::from("elephant"));
-            for i in ((msg_history.len() - 30).max(0))..msg_history.len() {
+            for i in (msg_history.len().max(30) - 30)..msg_history.len() {
                 let msg = msg_history.get(i).unwrap();
                 let sects = split_into_word_vec(&msg.text);
                 for sect in sects {
