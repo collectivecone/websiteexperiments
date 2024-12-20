@@ -3,7 +3,7 @@
 version = 4
 
 [[package]]
-name = "SocialExperiments"
+name = "WebExperiments"
 version = "0.1.0"
 dependencies = [
  "fastrand",
