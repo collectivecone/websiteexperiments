@@ -5,8 +5,6 @@ use std::{
     io::Write,
 };
 
-use tungstenite::http::header;
-
 #[derive(Debug, PartialEq, Eq)]
 pub enum HttpTypes {
    Post,
@@ -32,7 +30,6 @@ pub fn reply_to_get(mut stream: TcpStream,linker: &str) {
   
 
     let data_type = linker.split(".").into_iter().last().unwrap() ;
-    println!("{}",data_type);
 
     let header_string: String;
     if data_type == "png" {

@@ -133,7 +133,7 @@
   </div>
   
   <div class="box">
-     <div class="topler" id="topler"><div class="alert"><div id="alert_0" class="alert_time_left" style="width: 52.715%;"></div><div class="toptext">Hive mind</div><div class="bottomtext">If you do not use a word that has been sent in the last 30 messages, it is replaced by one that has</div></div></div>
+     <div class="topler" id="topler"></div>
      <div id="Messages" class="messagebox"></div>
      <input type="text" id="MessageInput" class="messageinput" maxlength="300" placeholder="enter text here for message">
     
@@ -141,7 +141,7 @@
   <script> 
       let socket;
       let MAX_MESSAGES = 1000;
-      let restrictions = [["title","description",1733775460571,1733775460571],["title","description",1733775460571,1733775460571]]; // {{"Title","Description",StartTime,EndTime}}
+      let restrictions = []; // {{"Title","Description",StartTime,EndTime}}
       
       window.onload = (event) => {
         connect_to_websockets()

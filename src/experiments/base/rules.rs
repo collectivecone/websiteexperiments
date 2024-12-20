@@ -63,18 +63,7 @@ pub fn initalise_rules() {
     let mut guard  = GLOBAL_RULES.lock().unwrap();
     let rules = guard.deref_mut();
 
-    
-    rules.push(Rule{ 
-        name: String::from("Reversed"), 
-        desc: String::from("Self explaintory"),
-        weight: 1.0,
-        process: |mut msg, _, _|  {
-            let reversed_message = msg.text.chars().rev().collect::<String>();
-            msg.text = reversed_message;
-            return msg;
-        }, 
-        ..Default::default()
-    });
+
 
     rules.push(Rule{ 
         name: String::from("Fck Vwls"), 
@@ -139,7 +128,7 @@ pub fn initalise_rules() {
 
     rules.push(Rule{ 
         name: String::from("Even Steven"), 
-        desc: String::from("Only sentences with an even amount of words are permited or every other word is censored"),
+        desc: String::from("Only sentences with an even amount of words are permited or otherwise every other word is censored"),
         weight: 1.0,
         process: |mut msg, _, _|  {
             let mut sects = split_into_word_vec(&msg.text);

@@ -29,7 +29,7 @@ use rules::{
 const RULE_TIME: u64 = 60;
 const RULE_MAX: usize = 1;
 const MAX_MSGS: usize = 1000;
-const MESSAGE_LIMIT: u64 = 4000;
+const MESSAGE_LIMIT: u64 = 3000;
 static USERS: Mutex<Vec<User>> = Mutex::new(Vec::new());
 static RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 static MSGS: Mutex<Vec<Message>> = Mutex::new(Vec::new());
