@@ -33,7 +33,7 @@ fn main() {
 }
 
 fn startup_experiments() {
-    spawn(|| crate::experiments::base::main());
+    spawn(|| crate::experiments::restrictions::main());
 }
 
 fn perm_http_receiver() {
@@ -65,8 +65,8 @@ fn perm_http_receiver() {
 fn websocket_handling(stream: TcpStream, request: Request ) {
     let link = request.request.request.clone();
 
-    if link == "/" {
-        crate::experiments::base::websocket_request(stream,request);
+    if link == "/restrictions" {
+        crate::experiments::restrictions::websocket_request(stream,request);
     }
 }
 
@@ -74,11 +74,14 @@ fn websocket_handling(stream: TcpStream, request: Request ) {
 fn website_handling(stream: TcpStream, request: Request) {
 
     let link = request.request.request.clone();
+    println!("{}",link);
 
     if link.as_str() == "/style.css" {
         reply_to_get(stream, "src/experiments/style.css");
     } else if link.as_str().trim() == "/favicon.png".trim() {
         reply_to_get(stream, "src/experiments/favicon.png");
+    } else if link == "/restrictions" {
+        crate::experiments::restrictions::http_request(stream,request);
     } else if link == "/" {
         crate::experiments::base::http_request(stream,request);
     };

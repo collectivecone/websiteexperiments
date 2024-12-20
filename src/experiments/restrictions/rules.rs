@@ -6,7 +6,7 @@ use std::{
     collections::HashSet,
 };
 use fastrand;
-use self::super::super::base::User;
+use self::super::super::restrictions::User;
 
 #[derive(Clone,Copy,Debug)]
 pub enum MessageType {
